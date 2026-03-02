@@ -86,8 +86,6 @@ curl http://localhost:5000/tickets/ids
 - The backend implementation is in the `Backend/` folder. See `Backend/README.md` for additional details and instructions.
 - Database: MySQL (see `docker-compose.yml` and `mysql-init/init.sql`). The backend waits for the database to become available and logs startup errors to the console if needed.
 
-If you want to add more endpoints (e.g. top-up balance, record purchases or delete tickets), modify `Backend/Program.cs`.
-
 ---
 
 
