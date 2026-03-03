@@ -4,7 +4,7 @@ services:
     image: mysql:8.0
     environment:
       MYSQL_ROOT_PASSWORD: rootpass
-      MYSQL_DATABASE: essens-bestellungs-tool
+      MYSQL_DATABASE: snackstasy
       MYSQL_USER: appuser
       MYSQL_PASSWORD: apppass
     volumes:
@@ -21,7 +21,7 @@ services:
     environment:
       DB_HOST: db
       DB_PORT: 3306
-      DB_NAME: essens-bestellungs-tool
+      DB_NAME: snackstasy
       DB_USER: appuser
       DB_PASSWORD: apppass
     ports:
