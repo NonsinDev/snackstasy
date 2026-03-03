@@ -8,16 +8,20 @@ const router = createRouter({
   history: createWebHashHistory(),
   routes: [
     {
-      path: '/',
-      name: 'home',
-      component: FoodMenu,
-      meta: { requiresAuth: true },
-    },
-    {
       path: '/login',
       name: 'login',
       component: Login,
+      meta: { showHeader: false }
     },
+    {
+      path: '/',
+      name: 'home',
+      component: FoodMenu,
+      meta: { requiresAuth: true, 
+              showHeader: true
+      },
+    },
+
   ],
 })
 

@@ -5,7 +5,11 @@ import PrimeVue from 'primevue/config'
 import App from './App.vue'
 import router from './router'
 import Button from 'primevue/button'
-import 'primeicons/primeicons.css'
+
+
+import 'primevue/resources/primevue.min.css'           // Core
+import 'primeicons/primeicons.css'                     // Icons
+
 import { VueQrcodeReader } from 'vue-qrcode-reader'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { library } from '@fortawesome/fontawesome-svg-core'
