@@ -12,7 +12,7 @@ namespace Backend.Router
                 try
                 {   
                     const string balanceQuery =
-                        "SELECT balance FROM tickets WHERE id = @id;";
+                        "SELECT balance FROM users WHERE id = @id;";
                     using var conn = new MySqlConnection(connStr);
                     var balance = await conn.QueryFirstOrDefaultAsync<decimal?>(balanceQuery, new { id = ticketId });
 
@@ -34,7 +34,7 @@ namespace Backend.Router
                 {
                     using var conn = new MySqlConnection(connStr);
                     const string query =
-                        "UPDATE tickets SET balance = @balance WHERE id = @id;";
+                        "UPDATE users SET balance = @balance WHERE id = @id;";
 
                     int rowsAffected = await conn.ExecuteAsync(query, new { balance = newBalance, id = ticketId });
 
@@ -56,13 +56,15 @@ namespace Backend.Router
                 {
                     using var conn = new MySqlConnection(connStr);
                     const string query =
-                        "UPDATE tickets SET balance = balance - @amount WHERE id = @id AND balance >= @amount;";
+                        "UPDATE users SET balance = balance - @amount WHERE id = @id AND balance >= @amount;";
 
                     int rowsAffected = await conn.ExecuteAsync(query, new { amount, id = ticketId });
 
                     if (rowsAffected == 0)
                     {
-                        var exists = await conn.ExecuteScalarAsync<long>("SELECT COUNT(1) FROM tickets WHERE id = @id;", new { id = ticketId });
+                        const string balanceCheckQuery =
+                            "SELECT balance FROM users WHERE id = @id;";
+                        var exists = await conn.ExecuteScalarAsync<long>(balanceCheckQuery, new { id = ticketId });
                         if (exists == 0)
                             return Results.NotFound(new { error = "Ticket not found." });
                         
@@ -84,7 +86,7 @@ namespace Backend.Router
                 {
                     using var conn = new MySqlConnection(connStr);
                     const string query =
-                        "UPDATE tickets SET balance = balance + @amount WHERE id = @id;";
+                        "UPDATE users SET balance = balance + @amount WHERE id = @id;";
 
                     int rowsAffected = await conn.ExecuteAsync(query, new { amount, id = ticketId });
 

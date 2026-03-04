@@ -8,7 +8,7 @@ Run with Docker Compose from the repository root:
 docker-compose up --build
 ```
 
-After startup the API will be available at http://localhost:5000/tickets/ids
+After startup the API will be available at http://localhost:5000
 
 Hint: The API returns the id as a 6-digit string ("000001", "000002").
 

@@ -12,33 +12,33 @@ namespace Backend.Router
             {
                 try
                 {
-                    if (string.IsNullOrWhiteSpace(req.ticketId) || string.IsNullOrWhiteSpace(req.password))
-                        return Results.BadRequest(new { error = "Ticket ID and password are required." });
+                    if (string.IsNullOrWhiteSpace(req.userId) || string.IsNullOrWhiteSpace(req.username))
+                        return Results.BadRequest(new { error = "User ID (Ticket ID) and username are required." });
 
                     using var conn = new MySqlConnection(connStr);
                     
-                    // First check if ticket id exists
-                    const string ticketCheckQuery =
-                        "SELECT id AS Id, first_name AS FirstName, last_name AS LastName, balance AS Balance FROM tickets WHERE id = @id;";
-                    var ticket = await conn.QueryFirstOrDefaultAsync<Ticket>(ticketCheckQuery, new { id = req.ticketId });
+                    // First check if user id exists
+                    const string userCheckQuery =
+                        "SELECT id AS Id, first_name AS FirstName, last_name AS LastName, balance AS Balance FROM users WHERE id = @id;";
+                    var user = await conn.QueryFirstOrDefaultAsync<User>(userCheckQuery, new { id = req.userId });
 
-                    if (ticket == null)
-                        return Results.Problem(detail: "Ticket ID not found.", statusCode: 404);
+                    if (user == null)
+                        return Results.Problem(detail: "User ID not found.", statusCode: 404);
 
-                    // Then check password
-                    const string passwordCheckQuery =
-                        "SELECT COUNT(*) FROM tickets WHERE id = @id AND password = @pw;";
-                    long passwordMatch = await conn.QueryFirstAsync<long>(passwordCheckQuery, new { id = req.ticketId, pw = req.password });
+                    // Then check username matches the user id
+                    const string usernameCheckQuery =
+                        "SELECT COUNT(*) FROM users WHERE id = @id AND username = @firstname + @last_name;";
+                    long usernameMatch = await conn.QueryFirstAsync<long>(usernameCheckQuery, new { id = req.userId, username = req.username });
 
-                    if (passwordMatch == 0)
-                        return Results.Problem(detail: "Wrong password.", statusCode: 401);
+                    if (usernameMatch == 0)
+                        return Results.Problem(detail: "Wrong username.", statusCode: 401);
 
                     return Results.Ok(new
                     {
-                        ticket_id = ticket.Id.ToString("D6"),
-                        first_name = ticket.FirstName,
-                        last_name = ticket.LastName,
-                        balance = ticket.Balance
+                        user_id = user.Id.ToString("D6"),
+                        first_name = user.FirstName,
+                        last_name = user.LastName,
+                        balance = user.Balance
                     });
                 }
                 catch (Exception ex)
@@ -52,7 +52,9 @@ namespace Backend.Router
 
     internal class LoginRequest
     {
-        public required string ticketId { get; set; }
-        public required string password { get; set; }
+        public required string userId { get; set; }
+        public required string username { get; set; }
     }
+
+    internal record User(long Id, string FirstName, string LastName, decimal Balance);
 }
