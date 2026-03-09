@@ -68,6 +68,8 @@ RouteGroupBuilder api_v1 = app.MapGroup("/v1");
 api_v1.MapTicketRoutes(conn_str);
 api_v1.MapLoginRoutes(conn_str);
 api_v1.MapBalanceRoutes(conn_str);
+api_v1.MapStandRoutes(conn_str);
+api_v1.MapItemRoutes(conn_str);
 
 app.Run();
 
