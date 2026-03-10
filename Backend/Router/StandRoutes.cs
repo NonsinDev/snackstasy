@@ -1,5 +1,4 @@
 using Backend.Class;
-using Backend.Extensions;
 using Dapper;
 using MySqlConnector;
 
@@ -10,7 +9,7 @@ namespace Backend.Router
         public static void MapStandRoutes(this RouteGroupBuilder group, string conn_str)
         {
             // Get all stands
-            group.MapGet("/stands", async () =>
+            group.MapGet("/stands/all", async () =>
             {
                 try
                 {
@@ -25,12 +24,7 @@ namespace Backend.Router
                     Console.WriteLine($"Error in GET /stands: {ex}");
                     return Results.Problem("Internal server error: " + ex.Message);
                 }
-            })
-            .RequireEmployee()
-            .WithName("GetAllStands")
-            .WithSummary("Get all stands")
-            .WithDescription("Returns a list of all stands")
-            .WithTags("Stands");
+            });
 
             // Get stand by ID
             group.MapGet("/stands/{stand_id}", async (int stand_id) =>
@@ -52,15 +46,10 @@ namespace Backend.Router
                     Console.WriteLine($"Error in GET /stands/{stand_id}: {ex}");
                     return Results.Problem("Internal server error: " + ex.Message);
                 }
-            })
-            .RequireEmployee()
-            .WithName("GetStandById")
-            .WithSummary("Get stand by ID")
-            .WithDescription("Returns a specific stand by its ID")
-            .WithTags("Stands");
+            });
 
             // Create new stand (Manager/Admin only)
-            group.MapPost("/stands", async (CreateStandRequest req) =>
+            group.MapPost("/stands/create", async (CreateStandRequest req) =>
             {
                 try
                 {
@@ -93,12 +82,7 @@ namespace Backend.Router
                     Console.WriteLine($"Error in POST /stands: {ex}");
                     return Results.Problem("Internal server error: " + ex.Message);
                 }
-            })
-            .RequireManager()
-            .WithName("CreateStand")
-            .WithSummary("Create a new stand")
-            .WithDescription("Creates a new stand (requires manager or admin role)")
-            .WithTags("Stands");
+            });
 
             // Update stand (Manager/Admin only)
             group.MapPut("/stands/{stand_id}", async (int stand_id, UpdateStandRequest req) =>
@@ -143,12 +127,7 @@ namespace Backend.Router
                     Console.WriteLine($"Error in PUT /stands/{stand_id}: {ex}");
                     return Results.Problem("Internal server error: " + ex.Message);
                 }
-            })
-            .RequireManager()
-            .WithName("UpdateStand")
-            .WithSummary("Update a stand")
-            .WithDescription("Updates an existing stand (requires manager or admin role)")
-            .WithTags("Stands");
+            });
 
             // Delete stand (Admin only)
             group.MapDelete("/stands/{stand_id}", async (int stand_id) =>
@@ -179,12 +158,7 @@ namespace Backend.Router
                     Console.WriteLine($"Error in DELETE /stands/{stand_id}: {ex}");
                     return Results.Problem("Internal server error: " + ex.Message);
                 }
-            })
-            .RequireAdmin()
-            .WithName("DeleteStand")
-            .WithSummary("Delete a stand")
-            .WithDescription("Deletes a stand (requires admin role)")
-            .WithTags("Stands");
+            });
         }
     }
 }

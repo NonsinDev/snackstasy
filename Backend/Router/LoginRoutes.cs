@@ -47,11 +47,7 @@ namespace Backend.Router
                     Console.WriteLine($"Error in POST /login-check: {ex}");
                     return Results.Problem("Internal server error: " + ex.Message);
                 }
-            })
-            .WithName("LoginCheck")
-            .WithSummary("Check credentials")
-            .WithDescription("Validates if an account with the given credentials exists")
-            .WithTags("Login");
+            });
 
             // Login: Erstellt eine Session für den Benutzer
             group.MapPost("/login", async (HttpContext context, LoginRequest req) =>
@@ -100,11 +96,7 @@ namespace Backend.Router
                     Console.WriteLine($"Error in POST /login: {ex}");
                     return Results.Problem("Internal server error: " + ex.Message);
                 }
-            })
-            .WithName("Login")
-            .WithSummary("Login")
-            .WithDescription("Authenticates the user and creates a session")
-            .WithTags("Login");
+            });
 
             // Logout: Beendet die Session
             group.MapPost("/logout", (HttpContext context) =>
@@ -129,11 +121,7 @@ namespace Backend.Router
                     Console.WriteLine($"Error in POST /logout: {ex}");
                     return Results.Problem("Internal server error: " + ex.Message);
                 }
-            })
-            .WithName("Logout")
-            .WithSummary("Logout")
-            .WithDescription("Ends the current session and logs out the user")
-            .WithTags("Login");
+            });
 
             // Session-Status prüfen
             group.MapGet("/session", (HttpContext context) =>
@@ -160,11 +148,7 @@ namespace Backend.Router
                     Console.WriteLine($"Error in GET /session: {ex}");
                     return Results.Problem("Internal server error: " + ex.Message);
                 }
-            })
-            .WithName("GetSession")
-            .WithSummary("Get session status")
-            .WithDescription("Returns the current session status and user info")
-            .WithTags("Login");
+            });
         }
     }
 }

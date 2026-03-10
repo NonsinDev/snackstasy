@@ -1,13 +1,9 @@
 using Dapper;
 using MySqlConnector;
 using Backend.Router;
-using Backend.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddCors();
-
-// Swagger/OpenAPI configuration
-builder.Services.AddSwaggerServices();
 
 // Session configuration
 builder.Services.AddDistributedMemoryCache();
@@ -51,14 +47,6 @@ app.UseCors(builder => builder
     .AllowAnyMethod()
     .AllowAnyHeader()
     .AllowCredentials());
-
-// Enable Swagger UI
-app.UseSwagger();
-app.UseSwaggerUI(options =>
-{
-    options.SwaggerEndpoint("/swagger/v1/swagger.json", "Snackstasy API v1");
-    options.RoutePrefix = "swagger";
-});
 
 // Enable session middleware
 app.UseSession();

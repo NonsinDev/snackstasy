@@ -1,6 +1,5 @@
 using Dapper;
 using MySqlConnector;
-using Backend.Extensions;
 
 namespace Backend.Router
 {
@@ -27,12 +26,7 @@ namespace Backend.Router
                     Console.WriteLine($"Error in GET /balance/{{user_id}}: {ex}");
                     return Results.Problem("Internal server error: " + ex.Message);
                 }
-            })
-            .RequireSession()
-            .WithName("GetBalance")
-            .WithSummary("Get balance")
-            .WithDescription("Returns the current balance of a ticket")
-            .WithTags("Balance");
+            });
 
             group.MapPut("/balance/{ticket_id}/update/{new_balance}", async (string ticket_id, decimal new_balance) =>
             {
@@ -54,12 +48,7 @@ namespace Backend.Router
                     Console.WriteLine($"Error in PUT /balance/{{ticket_id}}/update/{{new_balance}}: {ex}");
                     return Results.Problem("Internal server error: " + ex.Message);
                 }
-            })
-            .RequireSession()
-                    .WithName("UpdateBalance")
-            .WithSummary("Set balance")
-            .WithDescription("Sets the balance to a specific value")
-            .WithTags("Balance");
+            });
 
             group.MapPut("/balance/{ticket_id}/remove/{amount}", async (string ticket_id, decimal amount) =>
             {
@@ -89,12 +78,8 @@ namespace Backend.Router
                     Console.WriteLine($"Error in PUT /balance/{{ticket_id}}/remove/{{amount}}: {ex}");
                     return Results.Problem("Internal server error: " + ex.Message);
                 }
-            })
-            .RequireSession()
-            .WithName("RemoveBalance")
-            .WithSummary("Remove balance")
-            .WithDescription("Deducts an amount from the ticket balance")
-            .WithTags("Balance");
+            });
+
 
             group.MapPut("/balance/{ticket_id}/add/{amount}", async (string ticket_id, decimal amount) =>
             {
@@ -116,12 +101,7 @@ namespace Backend.Router
                     Console.WriteLine($"Error in PUT /balance/{{ticket_id}}/add/{{amount}}: {ex}");
                     return Results.Problem("Internal server error: " + ex.Message);
                 }
-            })
-            .RequireSession()
-            .WithName("AddBalance")
-            .WithSummary("Add balance")
-            .WithDescription("Adds an amount to the ticket balance")
-            .WithTags("Balance");
+            });
         }
     }
 }

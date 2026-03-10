@@ -1,5 +1,4 @@
 using Backend.Class;
-using Backend.Extensions;
 using Dapper;
 using MySqlConnector;
 
@@ -30,12 +29,7 @@ namespace Backend.Router
                     Console.WriteLine($"Error in GET /tickets/all: {ex}");
                     return Results.Problem("Internal server error: " + ex.Message);
                 }
-            })
-            .RequireSession()
-            .WithName("GetAllTickets")
-            .WithSummary("Get all tickets")
-            .WithDescription("Returns all registered tickets")
-            .WithTags("Tickets");
+            });
 
             group.MapPost("/tickets/book", async (BookRequest req) =>
             {
@@ -62,12 +56,7 @@ namespace Backend.Router
                     Console.WriteLine($"Error in POST /tickets/book: {ex}");
                     return Results.Problem("Internal server error: " + ex.Message);
                 }
-            })
-            .RequireSession()
-            .WithName("BookTicket")
-            .WithSummary("Book a ticket")
-            .WithDescription("Creates a new ticket for a user")
-            .WithTags("Tickets");
+            });
         }
     }
 }

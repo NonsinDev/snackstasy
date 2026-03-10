@@ -1,5 +1,4 @@
 using Backend.Class;
-using Backend.Extensions;
 using Dapper;
 using MySqlConnector;
 
@@ -10,7 +9,7 @@ namespace Backend.Router
         public static void MapItemRoutes(this RouteGroupBuilder group, string conn_str)
         {
             // Get all items
-            group.MapGet("/items", async () =>
+            group.MapGet("/items/all", async () =>
             {
                 try
                 {
@@ -25,12 +24,7 @@ namespace Backend.Router
                     Console.WriteLine($"Error in GET /items: {ex}");
                     return Results.Problem("Internal server error: " + ex.Message);
                 }
-            })
-            .RequireEmployee()
-            .WithName("GetAllItems")
-            .WithSummary("Get all items")
-            .WithDescription("Returns a list of all items across all stands")
-            .WithTags("Items");
+            });
 
             // Get items by stand
             group.MapGet("/stands/{stand_id}/items", async (int stand_id) =>
@@ -49,12 +43,7 @@ namespace Backend.Router
                     Console.WriteLine($"Error in GET /stands/{stand_id}/items: {ex}");
                     return Results.Problem("Internal server error: " + ex.Message);
                 }
-            })
-            .RequireEmployee()
-            .WithName("GetItemsByStand")
-            .WithSummary("Get items by stand")
-            .WithDescription("Returns all items for a specific stand")
-            .WithTags("Items");
+            });
 
             // Get item by ID
             group.MapGet("/items/{item_id}", async (int item_id) =>
@@ -76,15 +65,10 @@ namespace Backend.Router
                     Console.WriteLine($"Error in GET /items/{item_id}: {ex}");
                     return Results.Problem("Internal server error: " + ex.Message);
                 }
-            })
-            .RequireEmployee()
-            .WithName("GetItemById")
-            .WithSummary("Get item by ID")
-            .WithDescription("Returns a specific item by its ID")
-            .WithTags("Items");
+            });
 
             // Create new item (Manager/Admin only)
-            group.MapPost("/items", async (CreateItemRequest req) =>
+            group.MapPost("/items/create", async (CreateItemRequest req) =>
             {
                 try
                 {
@@ -117,10 +101,10 @@ namespace Backend.Router
 
                     int id = await conn.QueryFirstAsync<int>(query, new
                     {
-                        stand_id = req.stand_id,
-                        name = req.name,
-                        price = req.price,
-                        stock = req.stock
+                        req.stand_id,
+                        req.name,
+                        req.price,
+                        req.stock
                     });
 
                     return Results.Ok(new
@@ -137,12 +121,7 @@ namespace Backend.Router
                     Console.WriteLine($"Error in POST /items: {ex}");
                     return Results.Problem("Internal server error: " + ex.Message);
                 }
-            })
-            .RequireManager()
-            .WithName("CreateItem")
-            .WithSummary("Create a new item")
-            .WithDescription("Creates a new item for a stand (requires manager or admin role)")
-            .WithTags("Items");
+            });
 
             // Update item (Manager/Admin only)
             group.MapPut("/items/{item_id}", async (int item_id, UpdateItemRequest req) =>
@@ -191,12 +170,7 @@ namespace Backend.Router
                     Console.WriteLine($"Error in PUT /items/{item_id}: {ex}");
                     return Results.Problem("Internal server error: " + ex.Message);
                 }
-            })
-            .RequireManager()
-            .WithName("UpdateItem")
-            .WithSummary("Update an item")
-            .WithDescription("Updates an existing item (requires manager or admin role)")
-            .WithTags("Items");
+            });
 
             // Delete item (Admin only)
             group.MapDelete("/items/{item_id}", async (int item_id) =>
@@ -219,12 +193,7 @@ namespace Backend.Router
                     Console.WriteLine($"Error in DELETE /items/{item_id}: {ex}");
                     return Results.Problem("Internal server error: " + ex.Message);
                 }
-            })
-            .RequireAdmin()
-            .WithName("DeleteItem")
-            .WithSummary("Delete an item")
-            .WithDescription("Deletes an item (requires admin role)")
-            .WithTags("Items");
+            });
 
             // Update stock (Cashier/Manager/Admin)
             group.MapPatch("/items/{item_id}/stock", async (int item_id, UpdateStockRequest req) =>
@@ -261,12 +230,7 @@ namespace Backend.Router
                     Console.WriteLine($"Error in PATCH /items/{item_id}/stock: {ex}");
                     return Results.Problem("Internal server error: " + ex.Message);
                 }
-            })
-            .RequireCashier()
-            .WithName("UpdateItemStock")
-            .WithSummary("Update item stock")
-            .WithDescription("Adjusts the stock of an item by adding/subtracting (requires cashier, manager or admin role)")
-            .WithTags("Items");
+            });
         }
     }
 
