@@ -17,7 +17,7 @@ const router = createRouter({
       path: '/',
       name: 'home',
       component: FoodMenu,
-      meta: { requiresAuth: true, 
+      meta: { /* requiresAuth: true,  */
               showHeader: true
       },
     },
