@@ -23,7 +23,7 @@ const visible = ref(false)
     <button class="header-profile" @click="visible = true">
       <img :src="profileManImage" alt="Profilbild" class="header-Avatar" />
     </button>
-    <Dialog v-model:visible="visible" header="Profil bearbeiten" modal>
+    <Dialog v-model:visible="visible" header="Profil bearbeiten">
       <div class="Dialog-frame">
         <Dialog_profile :visible="visible" />
         <div class="flex justify-end gap-2">

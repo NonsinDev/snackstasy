@@ -25,10 +25,6 @@ const router = createRouter({
   ],
 })
 
-/* const router = createRouter({
-  history: createWebHashHistory(),
-  routes,
-}); 
 
 // 🔒 Globaler Login-Schutz
 router.beforeEach(async (to, _from, next) => {
@@ -39,22 +35,9 @@ router.beforeEach(async (to, _from, next) => {
   }
 
   if (to.meta.requiresAuth && !isAuthenticated()) {
-    next('/login');
+    next("/login");
   } else {
     next();
   }
-});*/
-
-// 🔒 Fake Frontend-Session (nur für Entwicklung)
-router.beforeEach((to, _from, next) => {
-  const isAuthenticated = sessionStorage.getItem('auth') === 'true'
-
-  if (to.meta.requiresAuth && !isAuthenticated) {
-    next('/login')
-  } else if (to.name === 'login' && isAuthenticated) {
-    next('/') // Bereits eingeloggt → direkt zur Home
-  } else {
-    next()
-  }
-})
+});
 export default router
