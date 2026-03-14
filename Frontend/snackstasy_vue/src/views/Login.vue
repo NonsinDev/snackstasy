@@ -5,6 +5,7 @@ import { useRouter } from 'vue-router'
 import { QrcodeStream } from 'vue-qrcode-reader'
 import { type DetectedBarcode } from 'barcode-detector/pure'
 import InputText from 'primevue/inputtext'
+import { checkLogin } from '@/services/Login'
 
 const username = ref('')
 const password = ref('')
@@ -14,12 +15,36 @@ const showScanner = ref(false)
 const isLoggingIn = ref(false)
 const loginSuccess = ref(false)
 
-function login() {
+/* function login() {
   if (username.value === 'max' && password.value === '1') {
     sessionStorage.setItem('auth', 'true') // ← sessionStorage statt localStorage
     router.push('/')
   } else {
     alert('Falscher Benutzername oder Passwort')
+  }
+} */
+
+async function login() {
+  try {
+    let result = await checkLogin({
+      username: username.value,
+      password: password.value,
+    })
+    if (result.success == true) {
+      sessionStorage.setItem('auth', 'true')
+      router.push(`/`)
+    } else {
+      alert('Falscher Benutzername oder Passwort')
+      console.warn(
+        'Falscher Benutzername oder Passwort ',
+
+        result,
+        username.value,
+        password.value,
+      )
+    }
+  } catch (error) {
+    alert('catch ')
   }
 }
 
