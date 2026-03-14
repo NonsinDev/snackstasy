@@ -16,12 +16,16 @@ After startup the backend API is available at http://localhost:5000/v1/ by defau
 
 Base URL: `http://localhost:5000`
 
+Sufix: `v1`
+
 Key routes:
 - **`/tickets`** – Manage customer tickets (list, create, book)
 - **`/login`** – User authentication
 - **`/balance`** – Query and update user balance
+- **`/stands`** – Manage stands (list, create, edit, remove)
+- **`/items`** – Manage items (list, create, edit, remove, stock)
 
-For comprehensive API documentation, see [Backend/README.md](Backend/README.md) or the Swagger UI.
+For comprehensive API documentation, see [Backend/README.md](Backend/README.md) or the [Swagger UI](swagger.html).
 
 ## Authentication
 

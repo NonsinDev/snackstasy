@@ -17,13 +17,12 @@ namespace Backend.Router
                         return Results.BadRequest(new { error = "User ID (Ticket ID) and username are required." });
 
                     using var conn = new MySqlConnection(conn_str);
-                    
+
                     const string user_check_query =
                         "SELECT user_id AS Id, first_name AS FirstName, last_name AS LastName, balance AS Balance, ticket_id AS Ticket FROM users WHERE ticket_id = @ticket_id;";
                     User user = await conn.QueryFirstOrDefaultAsync<User>(user_check_query, new { ticket_id = req.user_id });
 
-                    if (user == null)
-                        return Results.Problem(detail: "User ID not found.", statusCode: 404);
+                    User user = await conn.QueryFirstAsync<User>(user_check_query, new { req.user_id });
 
                     // Then check username matches the user id
                     const string username_check_query =
@@ -94,58 +93,6 @@ namespace Backend.Router
                 catch (Exception ex)
                 {
                     Console.WriteLine($"Error in POST /login: {ex}");
-                    return Results.Problem("Internal server error: " + ex.Message);
-                }
-            });
-
-            // Logout: Beendet die Session
-            group.MapPost("/logout", (HttpContext context) =>
-            {
-                try
-                {
-                    var user_id = context.Session.GetString("user_id");
-                    
-                    if (string.IsNullOrEmpty(user_id))
-                        return Results.BadRequest(new { error = "No active session found." });
-
-                    // Session löschen
-                    context.Session.Clear();
-
-                    return Results.Ok(new { 
-                        message = "Logout successful",
-                        logged_in = false
-                    });
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Error in POST /logout: {ex}");
-                    return Results.Problem("Internal server error: " + ex.Message);
-                }
-            });
-
-            // Session-Status prüfen
-            group.MapGet("/session", (HttpContext context) =>
-            {
-                try
-                {
-                    var user_id = context.Session.GetString("user_id");
-                    
-                    if (string.IsNullOrEmpty(user_id))
-                        return Results.Ok(new { logged_in = false });
-
-                    return Results.Ok(new
-                    {
-                        logged_in = true,
-                        user_id = context.Session.GetString("user_id"),
-                        username = context.Session.GetString("username"),
-                        first_name = context.Session.GetString("first_name"),
-                        last_name = context.Session.GetString("last_name"),
-                        logged_in_at = context.Session.GetString("logged_in_at")
-                    });
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Error in GET /session: {ex}");
                     return Results.Problem("Internal server error: " + ex.Message);
                 }
             });

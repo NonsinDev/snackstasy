@@ -5,5 +5,6 @@ namespace Backend.Models
         public required string first_name { get; set; }
         public required string last_name { get; set; }
         public required float balance { get; set; }
+        public required string ticket_id { get; set; }
     }
 }

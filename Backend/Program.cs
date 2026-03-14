@@ -18,9 +18,9 @@ builder.Services.AddSession(options =>
 
 var app = builder.Build();
 
-string db_host = Environment.GetEnvironmentVariable("DB_HOST") ?? "localhost";
-string db_port = Environment.GetEnvironmentVariable("DB_PORT") ?? "3306";
-string db_name = Environment.GetEnvironmentVariable("DB_NAME") ?? "essens_bestellungs_tool";
+string db_host = Environment.GetEnvironmentVariable("DB_HOST") ?? "db";
+string db_port = Environment.GetEnvironmentVariable("DB_PORT") ?? "3305";
+string db_name = Environment.GetEnvironmentVariable("DB_NAME") ?? "snackstasy";
 string db_user = Environment.GetEnvironmentVariable("DB_USER") ?? "appuser";
 string db_pass = Environment.GetEnvironmentVariable("DB_PASSWORD") ?? "apppass";
 
