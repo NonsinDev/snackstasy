@@ -36,11 +36,11 @@ namespace Backend.Router
                     const string query =
                         "INSERT INTO users (first_name, last_name, balance) VALUES (@fn, @ln, 0); SELECT LAST_INSERT_ID();";
 
-                    int id = await conn.QueryFirstAsync<int>(query, new { fn = req.first_name, ln = req.last_name});
+                    int user_id = await conn.QueryFirstAsync<int>(query, new { fn = req.first_name, ln = req.last_name});
 
                     return Results.Ok(new
                     {
-                        id,
+                        user_id,
                         req.first_name,
                         req.last_name
                     });

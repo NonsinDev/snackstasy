@@ -12,9 +12,9 @@ namespace Backend.Router
                 try
                 {   
                     const string balance_query =
-                        "SELECT balance FROM users WHERE id = @id;";
+                        "SELECT balance FROM users WHERE user_id = @user_id;";
                     using var conn = new MySqlConnection(conn_str);
-                    var balance = await conn.QueryFirstOrDefaultAsync<decimal?>(balance_query, new { id = user_id });
+                    var balance = await conn.QueryFirstOrDefaultAsync<decimal?>(balance_query, new { user_id });
 
                     if (balance == null)
                         return Results.Problem(detail: "User not found.", statusCode: 404);
@@ -34,9 +34,9 @@ namespace Backend.Router
                 {
                     using var conn = new MySqlConnection(conn_str);
                     const string query =
-                        "UPDATE users SET balance = @balance WHERE id = @id;";
+                        "UPDATE users SET balance = @balance WHERE user_id = @user_id;";
 
-                    int rows_affected = await conn.ExecuteAsync(query, new { balance = new_balance, id = ticket_id });
+                    int rows_affected = await conn.ExecuteAsync(query, new { balance = new_balance, user_id = ticket_id });
 
                     if (rows_affected == 0)
                         return Results.NotFound(new { error = "Ticket not found." });

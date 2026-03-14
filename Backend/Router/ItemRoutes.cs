@@ -33,8 +33,8 @@ namespace Backend.Router
                 {
                     using var conn = new MySqlConnection(conn_str);
                     var items = await conn.QueryAsync<Item>(
-                        "SELECT item_id, stand_id, name, price, stock FROM items WHERE stand_id = @id;",
-                        new { id = stand_id });
+                        "SELECT item_id, stand_id, name, price, stock FROM items WHERE stand_id = @stand_id;",
+                        new { stand_id });
 
                     return Results.Ok(items);
                 }
