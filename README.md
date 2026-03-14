@@ -10,7 +10,7 @@ Start from the repository root (requires Docker & Docker Compose):
 docker-compose down -v && docker-compose up --build
 ```
 
-After startup the backend API is available at http://localhost:5000 by default.
+After startup the backend API is available at http://localhost:5000/v1/ by default.
 
 ## API Endpoints
 

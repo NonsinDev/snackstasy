@@ -1,4 +1,4 @@
-namespace Backend.Class
+namespace Backend.Models
 {
     public class User {
         public required int user_id { get; set; }

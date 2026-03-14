@@ -29,12 +29,12 @@ string conn_str = $"Server={db_host};Port={db_port};Database={db_name};User={db_
 // Wait for database to be ready
 await WaitForDatabaseAsync(conn_str);
 
-// perform a quick sanity query on tickets table to surface errors early
+// perform a quick sanity query on users table to surface errors early
 try
 {
     using var conn = new MySqlConnection(conn_str);
-    var count = await conn.QueryFirstAsync<long>("SELECT COUNT(*) FROM tickets;");
-    Console.WriteLine($"Tickets table contains {count} row(s)");
+    var count = await conn.QueryFirstAsync<long>("SELECT COUNT(*) FROM users;");
+    Console.WriteLine($"Users table contains {count} row(s)");
 }
 catch (Exception ex)
 {

@@ -9,7 +9,7 @@ Run with Docker Compose from the repository root:
 docker-compose down -v && docker-compose up --build
 ```
 
-After startup the API will be available at http://localhost:5000
+After startup the API will be available at http://localhost:5000/v1/
 
 ## Authentication & Session Management
 
@@ -64,9 +64,4 @@ POST /login
 
 ## API Routes
 
-For detailed API documentation, visit the Swagger UI at:
-
-```
-`swagger.html`
-```
-
+For detailed API documentation, visit the [Swagger UI](../swagger.html) HTML side in the route folder.

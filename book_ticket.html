@@ -214,14 +214,14 @@
             resultDiv.classList.add('show');
             
             try {
-                const response = await fetch('http://localhost:5000/tickets/book', {
+                const response = await fetch('http://localhost:5000/v1/tickets/book', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        firstName: firstName,
-                        lastName: lastName
+                        first_name: firstName,
+                        last_name: lastName
                     })
                 });
                 
@@ -229,10 +229,10 @@
                 
                 if (response.ok) {
                     lastTicketData = data;
-                    const qrContent = `${data.last_name} ${data.first_name} ${data.ticket_id}`;
+                    const qrContent = `${data.last_name} ${data.first_name} ${data.id}`;
                     
                     resultDiv.innerHTML = `
-                        <h2>✓ Ticket erfolgreich erstellt!</h2>
+                        <h2>Ticket erfolgreich erstellt!</h2>
                         <div class="button-group">
                             <button type="button" class="button-success" onclick="openTicketInNewTab()">📄 Im Browser ansehen</button>
                             <button type="button" class="button-success" onclick="downloadTicketAsPDF()">📥 Als PDF herunterladen</button>
@@ -245,10 +245,10 @@
                     
                     document.getElementById('bookingForm').reset();
                 } else {
-                    resultDiv.innerHTML = `<div class="error">❌ Fehler: ${escapeHtml(data.error || 'Unbekannter Fehler')}</div>`;
+                    resultDiv.innerHTML = `<div class="error">Fehler: ${escapeHtml(data.error || 'Unbekannter Fehler')}</div>`;
                 }
             } catch (error) {
-                resultDiv.innerHTML = `<div class="error">❌ Fehler beim Buchen: ${escapeHtml(error.message)}</div>`;
+                resultDiv.innerHTML = `<div class="error">Fehler beim Buchen: ${escapeHtml(error.message)}</div>`;
             }
         });
 
@@ -277,7 +277,7 @@
             setTimeout(() => {
                 const opt = {
                     margin: 10,
-                    filename: `Ticket_${lastTicketData.ticket_id}.pdf`,
+                    filename: `Ticket_${lastTicketData.id}.pdf`,
                     image: { type: 'jpeg', quality: 0.98 },
                     html2canvas: { scale: 2 },
                     jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
@@ -293,7 +293,7 @@
                 <head>
                     <meta charset="UTF-8">
                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <title>Ticket ${escapeHtml(ticketData.ticket_id)}</title>
+                    <title>Ticket ${escapeHtml(ticketData.id)}</title>
                     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"><\/script>
                     <style>
                         * {
@@ -419,7 +419,7 @@
                         <div class="ticket-info">
                             <div class="info-row">
                                 <span class="info-label">Ticket-ID:</span>
-                                <span class="info-value">${escapeHtml(ticketData.ticket_id)}</span>
+                                <span class="info-value">${escapeHtml(String(ticketData.id))}</span>
                             </div>
                             <div class="info-row">
                                 <span class="info-label">Vorname:</span>
@@ -429,10 +429,7 @@
                                 <span class="info-label">Nachname:</span>
                                 <span class="info-value">${escapeHtml(ticketData.last_name)}</span>
                             </div>
-                            <div class="info-row">
-                                <span class="info-label">Passwort:</span>
-                                <span class="info-value">${escapeHtml(ticketData.password)}</span>
-                            </div>
+
                         </div>
 
                         <div class="qr-code-container">

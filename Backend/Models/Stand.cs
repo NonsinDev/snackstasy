@@ -1,4 +1,4 @@
-namespace Backend.Class
+namespace Backend.Models
 {
     public class Stand
     {

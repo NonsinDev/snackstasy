@@ -1,4 +1,4 @@
-using Backend.Class;
+using Backend.Models;
 using Dapper;
 using MySqlConnector;
 

@@ -1,4 +1,4 @@
-using Backend.Class;
+using Backend.Models;
 using Dapper;
 using MySqlConnector;
 
@@ -19,16 +19,16 @@ namespace Backend.Router
                     using var conn = new MySqlConnection(conn_str);
                     
                     const string user_check_query =
-                        "SELECT id AS Id, first_name AS FirstName, last_name AS LastName, balance AS Balance FROM users WHERE id = @id;";
-                    User user = await conn.QueryFirstAsync<User>(user_check_query, new { id = req.user_id });
+                        "SELECT user_id AS Id, first_name AS FirstName, last_name AS LastName, balance AS Balance FROM users WHERE user_id = @user_id;";
+                    User user = await conn.QueryFirstOrDefaultAsync<User>(user_check_query, new { user_id = req.user_id });
 
                     if (user == null)
                         return Results.Problem(detail: "User ID not found.", statusCode: 404);
 
                     // Then check username matches the user id
                     const string username_check_query =
-                        "SELECT COUNT(*) FROM users WHERE id = @id AND username = @firstname + @last_name;";
-                    long username_match = await conn.QueryFirstAsync<long>(username_check_query, new { id = req.user_id, username = req.username });
+                        "SELECT COUNT(*) FROM users WHERE user_id = @user_id AND username = @firstname + @last_name;";
+                    long username_match = await conn.QueryFirstAsync<long>(username_check_query, new { user_id = req.user_id, username = req.username });
 
                     if (username_match == 0)
                         return Results.Problem(detail: "Wrong username.", statusCode: 401);
@@ -60,16 +60,16 @@ namespace Backend.Router
                     using var conn = new MySqlConnection(conn_str);
                     
                     const string user_check_query =
-                        "SELECT id, first_name, last_name, balance FROM users WHERE id = @id;";
-                    User user = await conn.QueryFirstAsync<User>(user_check_query, new { id = req.user_id });
+                        "SELECT user_id, first_name, last_name, balance FROM users WHERE user_id = @user_id;";
+                    User user = await conn.QueryFirstAsync<User>(user_check_query, new { user_id = req.user_id });
 
                     if (user == null)
                         return Results.Problem(detail: "User ID not found.", statusCode: 404);
 
                     // Check username matches the user id
                     const string username_check_query =
-                        "SELECT COUNT(*) FROM users WHERE id = @id AND username = @firstname + @last_name;";
-                    long username_match = await conn.QueryFirstAsync<long>(username_check_query, new { id = req.user_id, username = req.username });
+                        "SELECT COUNT(*) FROM users WHERE user_id = @user_id AND username = @firstname + @last_name;";
+                    long username_match = await conn.QueryFirstAsync<long>(username_check_query, new { user_id = req.user_id, username = req.username });
 
                     if (username_match == 0)
                         return Results.Problem(detail: "Wrong username.", statusCode: 401);
