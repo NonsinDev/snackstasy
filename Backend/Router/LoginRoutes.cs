@@ -19,16 +19,16 @@ namespace Backend.Router
                     using var conn = new MySqlConnection(conn_str);
                     
                     const string user_check_query =
-                        "SELECT user_id AS Id, first_name AS FirstName, last_name AS LastName, balance AS Balance FROM users WHERE user_id = @user_id;";
-                    User user = await conn.QueryFirstOrDefaultAsync<User>(user_check_query, new { user_id = req.user_id });
+                        "SELECT user_id AS Id, first_name AS FirstName, last_name AS LastName, balance AS Balance, ticket_id AS Ticket FROM users WHERE ticket_id = @ticket_id;";
+                    User user = await conn.QueryFirstOrDefaultAsync<User>(user_check_query, new { ticket_id = req.user_id });
 
                     if (user == null)
                         return Results.Problem(detail: "User ID not found.", statusCode: 404);
 
                     // Then check username matches the user id
                     const string username_check_query =
-                        "SELECT COUNT(*) FROM users WHERE user_id = @user_id AND username = @firstname + @last_name;";
-                    long username_match = await conn.QueryFirstAsync<long>(username_check_query, new { user_id = req.user_id, username = req.username });
+                        "SELECT COUNT(*) FROM users WHERE ticket_id = @ticket_id AND CONCAT(first_name, last_name) = @username;";
+                    long username_match = await conn.QueryFirstAsync<long>(username_check_query, new { ticket_id = req.user_id, username = req.username });
 
                     if (username_match == 0)
                         return Results.Problem(detail: "Wrong username.", statusCode: 401);
@@ -55,21 +55,21 @@ namespace Backend.Router
                 try
                 {
                     if (string.IsNullOrWhiteSpace(req.user_id) || string.IsNullOrWhiteSpace(req.username))
-                        return Results.BadRequest(new { error = "User ID (Ticket ID) and username are required." });
+                        return Results.BadRequest(new { error = "Ticket ID and username are required." });
 
                     using var conn = new MySqlConnection(conn_str);
                     
                     const string user_check_query =
-                        "SELECT user_id, first_name, last_name, balance FROM users WHERE user_id = @user_id;";
-                    User user = await conn.QueryFirstAsync<User>(user_check_query, new { user_id = req.user_id });
+                        "SELECT user_id, first_name, last_name, balance, ticket_id FROM users WHERE ticket_id = @ticket_id;";
+                    User user = await conn.QueryFirstOrDefaultAsync<User>(user_check_query, new { ticket_id = req.user_id });
 
                     if (user == null)
-                        return Results.Problem(detail: "User ID not found.", statusCode: 404);
+                        return Results.Problem(detail: "Ticket ID not found.", statusCode: 404);
 
                     // Check username matches the user id
                     const string username_check_query =
-                        "SELECT COUNT(*) FROM users WHERE user_id = @user_id AND username = @firstname + @last_name;";
-                    long username_match = await conn.QueryFirstAsync<long>(username_check_query, new { user_id = req.user_id, username = req.username });
+                        "SELECT COUNT(*) FROM users WHERE ticket_id = @ticket_id AND CONCAT(first_name, last_name) = @username;";
+                    long username_match = await conn.QueryFirstAsync<long>(username_check_query, new { ticket_id = req.user_id, username = req.username });
 
                     if (username_match == 0)
                         return Results.Problem(detail: "Wrong username.", statusCode: 401);
