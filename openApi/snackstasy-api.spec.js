@@ -10,7 +10,7 @@ window.SnackstasyApiSpec = {
   },
   "servers": [
     {
-      "url": "http://localhost:5000/v1",
+      "url": "http://localhost:5002/v1",
       "description": "Local Development Server"
     }
   ],
@@ -181,7 +181,7 @@ window.SnackstasyApiSpec = {
                       "type": "object",
                       "properties": {
                         "logged_in": { "type": "boolean", "example": true },
-                        "user_id": { "type": "string" },
+                        "user_id": { "type": "integer" },
                         "username": { "type": "string" },
                         "first_name": { "type": "string" },
                         "last_name": { "type": "string" },
@@ -286,7 +286,7 @@ window.SnackstasyApiSpec = {
             "name": "user_id",
             "in": "path",
             "required": true,
-            "schema": { "type": "string" },
+            "schema": { "type": "integer" },
             "description": "Benutzer-ID"
           }
         ],
@@ -313,7 +313,7 @@ window.SnackstasyApiSpec = {
         }
       }
     },
-    "/balance/{ticket_id}/update/{new_balance}": {
+    "/balance/{user_id}/update/{new_balance}": {
       "put": {
         "tags": ["Balance"],
         "summary": "Guthaben setzen",
@@ -322,11 +322,11 @@ window.SnackstasyApiSpec = {
         "security": [{ "SessionAuth": [] }],
         "parameters": [
           {
-            "name": "ticket_id",
+            "name": "user_id",
             "in": "path",
             "required": true,
-            "schema": { "type": "string" },
-            "description": "Ticket-ID"
+            "schema": { "type": "integer" },
+            "description": "Benutzer-ID"
           },
           {
             "name": "new_balance",
@@ -359,7 +359,7 @@ window.SnackstasyApiSpec = {
         }
       }
     },
-    "/balance/{ticket_id}/remove/{amount}": {
+    "/balance/{user_id}/remove/{amount}": {
       "put": {
         "tags": ["Balance"],
         "summary": "Guthaben abziehen",
@@ -368,11 +368,11 @@ window.SnackstasyApiSpec = {
         "security": [{ "SessionAuth": [] }],
         "parameters": [
           {
-            "name": "ticket_id",
+            "name": "user_id",
             "in": "path",
             "required": true,
-            "schema": { "type": "string" },
-            "description": "Ticket-ID"
+            "schema": { "type": "integer" },
+            "description": "Benutzer-ID"
           },
           {
             "name": "amount",
@@ -408,7 +408,7 @@ window.SnackstasyApiSpec = {
         }
       }
     },
-    "/balance/{ticket_id}/add/{amount}": {
+    "/balance/{user_id}/add/{amount}": {
       "put": {
         "tags": ["Balance"],
         "summary": "Guthaben aufladen",
@@ -417,11 +417,11 @@ window.SnackstasyApiSpec = {
         "security": [{ "SessionAuth": [] }],
         "parameters": [
           {
-            "name": "ticket_id",
+            "name": "user_id",
             "in": "path",
             "required": true,
-            "schema": { "type": "string" },
-            "description": "Ticket-ID"
+            "schema": { "type": "integer" },
+            "description": "Benutzer-ID"
           },
           {
             "name": "amount",
@@ -612,7 +612,7 @@ window.SnackstasyApiSpec = {
         "required": ["user_id", "username"],
         "properties": {
           "user_id": {
-            "type": "string",
+            "type": "integer",
             "description": "Benutzer-/Ticket-ID"
           },
           "username": {

@@ -28,7 +28,7 @@ namespace Backend.Router
                 }
             });
 
-            group.MapPut("/balance/{ticket_id}/update/{new_balance}", async (string ticket_id, decimal new_balance) =>
+            group.MapPut("/balance/{user_id}/update/{new_balance}", async (string user_id, decimal new_balance) =>
             {
                 try
                 {
@@ -36,69 +36,69 @@ namespace Backend.Router
                     const string query =
                         "UPDATE users SET balance = @balance WHERE user_id = @user_id;";
 
-                    int rows_affected = await conn.ExecuteAsync(query, new { balance = new_balance, user_id = ticket_id });
+                    int rows_affected = await conn.ExecuteAsync(query, new { balance = new_balance, user_id });
 
                     if (rows_affected == 0)
-                        return Results.NotFound(new { error = "Ticket not found." });
+                        return Results.NotFound(new { error = "User not found." });
 
-                    return Results.Ok(new { message = $"Successfully updated balance for ticket {ticket_id} to {new_balance}." });
+                    return Results.Ok(new { message = $"Successfully updated balance for user {user_id} to {new_balance}." });
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error in PUT /balance/{{ticket_id}}/update/{{new_balance}}: {ex}");
+                    Console.WriteLine($"Error in PUT /balance/{{user_id}}/update/{{new_balance}}: {ex}");
                     return Results.Problem("Internal server error: " + ex.Message);
                 }
             });
 
-            group.MapPut("/balance/{ticket_id}/remove/{amount}", async (string ticket_id, decimal amount) =>
+            group.MapPut("/balance/{user_id}/remove/{amount}", async (string user_id, decimal amount) =>
             {
                 try
                 {
                     using var conn = new MySqlConnection(conn_str);
                     const string query =
-                        "UPDATE users SET balance = balance - @amount WHERE id = @id AND balance >= @amount;";
+                        "UPDATE users SET balance = balance - @amount WHERE user_id = @user_id AND balance >= @amount;";
 
-                    int rows_affected = await conn.ExecuteAsync(query, new { amount, id = ticket_id });
+                    int rows_affected = await conn.ExecuteAsync(query, new { amount, user_id});
 
                     if (rows_affected == 0)
                     {
                         const string balance_check_query =
-                            "SELECT balance FROM users WHERE id = @id;";
-                        var exists = await conn.ExecuteScalarAsync<long>(balance_check_query, new { id = ticket_id });
+                            "SELECT balance FROM users WHERE user_id = @user_id;";
+                        var exists = await conn.ExecuteScalarAsync<long>(balance_check_query, new { user_id });
                         if (exists == 0)
-                            return Results.NotFound(new { error = "Ticket not found." });
+                            return Results.NotFound(new { error = "User not found." });
                         
                         return Results.BadRequest(new { error = "Insufficient balance." });
                     }
 
-                    return Results.Ok(new { message = $"Successfully removed {amount} from ticket {ticket_id}." });
+                    return Results.Ok(new { message = $"Successfully removed {amount} from user {user_id}." });
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error in PUT /balance/{{ticket_id}}/remove/{{amount}}: {ex}");
+                    Console.WriteLine($"Error in PUT /balance/{{user_id}}/remove/{{amount}}: {ex}");
                     return Results.Problem("Internal server error: " + ex.Message);
                 }
             });
 
 
-            group.MapPut("/balance/{ticket_id}/add/{amount}", async (string ticket_id, decimal amount) =>
+            group.MapPut("/balance/{user_id}/add/{amount}", async (string user_id, decimal amount) =>
             {
                 try
                 {
                     using var conn = new MySqlConnection(conn_str);
                     const string query =
-                        "UPDATE users SET balance = balance + @amount WHERE id = @id;";
+                        "UPDATE users SET balance = balance + @amount WHERE user_id = @user_id;";
 
-                    int rows_affected = await conn.ExecuteAsync(query, new { amount, id = ticket_id });
+                    int rows_affected = await conn.ExecuteAsync(query, new { amount, user_id });
 
                     if (rows_affected == 0)
-                        return Results.NotFound(new { error = "Ticket not found." });
+                        return Results.NotFound(new { error = "User not found." });
 
-                    return Results.Ok(new { message = $"Successfully added {amount} to ticket {ticket_id}." });
+                    return Results.Ok(new { message = $"Successfully added {amount} to user {user_id}." });
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error in PUT /balance/{{ticket_id}}/add/{{amount}}: {ex}");
+                    Console.WriteLine($"Error in PUT /balance/{{user_id}}/add/{{amount}}: {ex}");
                     return Results.Problem("Internal server error: " + ex.Message);
                 }
             });

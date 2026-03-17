@@ -9,7 +9,7 @@ Run with Docker Compose from the repository root:
 docker-compose down -v && docker-compose up --build
 ```
 
-After startup the API will be available at http://localhost:5000/v1/
+After startup the API will be available at http://localhost:5002/v1/
 
 ## Authentication & Session Management
 
