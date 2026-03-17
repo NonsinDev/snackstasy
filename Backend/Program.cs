@@ -57,4 +57,5 @@ api_v1.MapBalanceRoutes(conn_str);
 api_v1.MapStandRoutes(conn_str);
 api_v1.MapItemRoutes(conn_str);
 
-app.Run();
+// Port hier explizit setzen (z. B. 5002). "0.0.0.0" erlaubt Zugriff auch von anderen Geräten im Netzwerk.
+app.Run("http://0.0.0.0:5002");
