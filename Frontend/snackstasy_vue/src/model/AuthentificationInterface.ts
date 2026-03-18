@@ -1,14 +1,21 @@
-export interface CurrenUser_response {
-  id: number
-  username: String;
-  role: String;
-}
-
-export interface Login_Register {
-  username: string;
-  password: string
+export interface Login_data {
+  user_id: string;
+  username: string
 }
 
 export interface Login_response {
-  success: boolean
+  exists: boolean,
+  user_id: number,
+  first_name: string,
+  last_name: string,
+  balance: number
+}
+
+export interface CurrenUser_response {
+  message: string,
+  logged_in: boolean,
+  user_id: number,
+  first_name: string,
+  last_name: string,
+  balance: number
 }

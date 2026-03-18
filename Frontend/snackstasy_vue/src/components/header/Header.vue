@@ -5,8 +5,20 @@ import Dialog from 'primevue/dialog'
 import { ref } from 'vue'
 import Button from 'primevue/button'
 import Dialog_profile from './Dialog_profile.vue'
+import Dialog_balance from './Dialog_balance.vue'
 
 const visible = ref(false)
+const visibleBalance = ref(false)
+const balance = ref(25.0)
+const profileImage = ref(profileManImage)
+
+const handleProfileImageChange = (newImage: string) => {
+  profileImage.value = newImage
+}
+
+const handleBalanceUpdate = (newBalance: number) => {
+  balance.value = newBalance
+}
 </script>
 
 <template>
@@ -14,36 +26,79 @@ const visible = ref(false)
     <div class="header-logo">
       <img :src="snackstasyIcon" alt="Snackstasy Icon" class="logo-icon" />
     </div>
+    <span style="flex: 1"></span>
     <h1 class="snackstasy-title">Snackstasy</h1>
-    <div style="display: flex; flex-direction: row; align-items: center; gap: 1rem">
-      <div class="header-budget">
-        <h4>25.00€</h4>
-      </div>
+    <span style="flex: 1"></span>
+    <div style="display: flex; align-items: center; justify-items: end; gap: 1rem">
+      <button class="header-budget" @click="visibleBalance = true" title="Guthaben aufladen">
+        <h4>{{ balance.toFixed(2) }} €</h4>
+      </button>
       <button class="header-profile" @click="visible = true" title="Profil bearbeiten">
-        <img :src="profileManImage" alt="Profilbild" class="header-Avatar" />
+        <img :src="profileImage" alt="Profilbild" class="header-Avatar" />
       </button>
     </div>
-    <Dialog v-model:visible="visible" header="Profil bearbeiten">
-      <div class="Dialog-frame">
-        <Dialog_profile :visible="visible" />
-        <div class="flex justify-end gap-2">
+    <Dialog
+      v-model:visible="visibleBalance"
+      :modal="true"
+      :closable="false"
+      class="modern-dialog"
+      :style="{ width: '90vw', maxWidth: '700px', marginTop: '5rem' }"
+    >
+      <Dialog_balance
+        :current-balance="balance"
+        @update-balance="handleBalanceUpdate"
+        @close-dialog="visibleBalance = false"
+      />
+      <template #footer>
+        <div class="dialog-footer">
           <Button
             type="button"
-            label="Cancel"
+            label="Schließen"
+            severity="secondary"
+            @click="visibleBalance = false"
+            class="footer-button"
+          ></Button>
+        </div>
+      </template>
+    </Dialog>
+    <Dialog
+      v-model:visible="visible"
+      :modal="true"
+      :closable="false"
+      class="modern-dialog"
+      :style="{ width: '90vw', maxWidth: '700px', marginTop: '5rem' }"
+    >
+      <Dialog_profile
+        :visible="visible"
+        :current-image="profileImage"
+        :balance="balance"
+        @update-profile-image="handleProfileImageChange"
+        @switch-to-balance="
+          () => {
+            visible = false
+            visibleBalance = true
+          }
+        "
+      />
+      <template #footer>
+        <div class="dialog-footer">
+          <Button
+            type="button"
+            label="Schließen"
             severity="secondary"
             @click="visible = false"
+            class="footer-button"
           ></Button>
-          <Button type="button" label="Save" @click="visible = false"></Button>
         </div>
-      </div>
+      </template>
     </Dialog>
   </header>
 </template>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@700;800&family=Montserrat:wght@600&display=swap');
-
 .header {
+  display: flex;
+  flex-direction: row;
   width: 100%;
   background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
   color: white;
@@ -67,12 +122,12 @@ const visible = ref(false)
 }
 
 .snackstasy-title {
+  display: flex;
+
   font-family: 'Poppins', sans-serif;
   font-size: 28px;
   font-weight: 800;
-  margin-left: auto;
-  margin-right: auto;
-  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+  background: linear-gradient(135deg, #ffd700 100%, #ffed4e 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -88,6 +143,9 @@ const visible = ref(false)
   font-family: 'Montserrat', sans-serif;
   font-weight: 600;
   transition: all 0.3s ease;
+  cursor: pointer;
+  color: white;
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.2) 0%, rgba(255, 215, 0, 0.1) 100%);
 }
 
 .header-budget:hover {
@@ -134,5 +192,93 @@ h4 {
 .Dialog-frame {
   background-color: bisque;
   padding: 1rem;
+}
+
+/* Modern Dialog Styling */
+:deep(.modern-dialog) {
+  border-radius: 16px !important;
+  overflow: hidden !important;
+}
+
+:deep(.modern-dialog .p-dialog-header) {
+  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+  color: #1a1a1a;
+  border: none;
+  padding: 1.5rem;
+  border-radius: 16px 16px 0 0;
+}
+
+:deep(.modern-dialog .p-dialog-header .p-dialog-title) {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: 0.5px;
+}
+
+:deep(.modern-dialog .p-dialog-header .p-dialog-header-close) {
+  color: #1a1a1a;
+  width: 40px;
+  height: 40px;
+  transition: all 0.3s ease;
+}
+
+:deep(.modern-dialog .p-dialog-header .p-dialog-header-close:hover) {
+  background-color: rgba(26, 26, 26, 0.2);
+  border-radius: 8px;
+  transform: rotate(90deg);
+}
+
+:deep(.modern-dialog .p-dialog-content) {
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+  padding: 2rem;
+  border: none;
+  color: white;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 215, 0, 0.1);
+  margin-top: 1.5rem;
+}
+
+.footer-button {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 13px;
+}
+
+:deep(.footer-button.p-button-secondary) {
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+:deep(.footer-button.p-button-secondary:hover) {
+  background-color: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: translateY(-2px);
+}
+
+:deep(.save-button.p-button) {
+  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+  border: none;
+  color: #1a1a1a;
+}
+
+:deep(.save-button.p-button:hover) {
+  box-shadow: 0 6px 16px rgba(255, 215, 0, 0.3);
+  transform: translateY(-2px);
+}
+
+:deep(.p-dialog-mask.p-component-overlay) {
+  backdrop-filter: blur(4px);
 }
 </style>
