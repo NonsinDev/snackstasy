@@ -25,8 +25,7 @@ namespace Backend.Router
                         exists = true,
                         user.ticket_id,
                         user.first_name,
-                        user.last_name,
-                        user.balance
+                        user.last_name
                     });
                 }
                 catch (Exception ex)
@@ -60,12 +59,10 @@ namespace Backend.Router
 
                     return Results.Ok(new
                     {
-                        message = "Login successful",
                         logged_in = true,
                         user.ticket_id,
                         user.first_name,
-                        user.last_name,
-                        user.balance
+                        user.last_name
                     });
                 }
                 catch (Exception ex)
