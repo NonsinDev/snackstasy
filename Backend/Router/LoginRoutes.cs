@@ -18,12 +18,12 @@ namespace Backend.Router
 
                     using var conn = new MySqlConnection(conn_str);
 
-                    User user = await conn.QueryFirstAsync<User>($"SELECT user_id, first_name, last_name, balance, ticket_id FROM users WHERE user_id = { req.user_id };");
+                    User user = await conn.QueryFirstAsync<User>($"SELECT user_id, first_name, last_name, balance, ticket_id FROM users WHERE ticket_id = { req.ticket_id };");
 
                     return Results.Ok(new
                     {
                         exists = true,
-                        user.user_id,
+                        user.ticket_id,
                         user.first_name,
                         user.last_name,
                         user.balance
@@ -46,13 +46,13 @@ namespace Backend.Router
 
                     using var conn = new MySqlConnection(conn_str);
                     
-                    User user = await conn.QueryFirstAsync<User>($"SELECT user_id, first_name, last_name, balance, ticket_id FROM users WHERE user_id = {req.user_id};");
+                    User user = await conn.QueryFirstAsync<User>($"SELECT user_id, first_name, last_name, balance, ticket_id FROM users WHERE ticket_id = {req.ticket_id};");
 
                     if (user == null)
                         return Results.Problem(detail: "Ticket ID not found.", statusCode: 404);
                         
                     // Session erstellen
-                    context.Session.SetString("user_id", req.user_id.ToString());
+                    context.Session.SetString("ticket_id", req.ticket_id.ToString());
                     context.Session.SetString("username", req.username);
                     context.Session.SetString("first_name", user.first_name ?? "");
                     context.Session.SetString("last_name", user.last_name ?? "");
@@ -62,7 +62,7 @@ namespace Backend.Router
                     {
                         message = "Login successful",
                         logged_in = true,
-                        user.user_id,
+                        user.ticket_id,
                         user.first_name,
                         user.last_name,
                         user.balance

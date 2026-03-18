@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS users (
   last_name VARCHAR(255) NOT NULL,
   birthday DATE NULL,
   balance DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
-  ticket_id VARCHAR(255) NOT NULL
+  ticket_id VARCHAR(255) NOT NULL UNIQUE
 );
 
 CREATE TABLE IF NOT EXISTS employees (
