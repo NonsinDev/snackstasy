@@ -51,15 +51,15 @@ catch (Exception ex)
 await WaitForDatabaseAsync(conn_str);
 
 // **Init SQL ausführen**
-//string backendDir = Directory.GetParent(AppContext.BaseDirectory)   // net8.0
-//                             .Parent  // Debug
-//                             .Parent  // bin
-//                             .FullName; // jetzt im Backend-Ordner
-//
-//string sqlFilePath = Path.Combine(backendDir, "..", "mysql-init", "init.sql");
-//await ExecuteSqlFileAsync(conn_str, sqlFilePath);
+string backendDir = Directory.GetParent(AppContext.BaseDirectory)   // net8.0
+                             .Parent  // Debug
+                             .Parent  // bin
+                             .FullName; // jetzt im Backend-Ordner
 
-//Console.WriteLine("✅ Database initialized! " + sqlFilePath + " " +  conn_str);
+string sqlFilePath = Path.Combine(backendDir, "..", "mysql-init", "init.sql");
+await ExecuteSqlFileAsync(conn_str, sqlFilePath);
+
+Console.WriteLine("✅ Database initialized! " + sqlFilePath + " " +  conn_str);
 
 // CORS enabling
 app.UseCors(builder => builder
@@ -79,8 +79,8 @@ api_v1.MapBalanceRoutes(conn_str);
 api_v1.MapStandRoutes(conn_str);
 api_v1.MapItemRoutes(conn_str);
 
-app.Run();
-//app.Run("http://localhost:5002");
+//app.Run();
+app.Run("http://localhost:5002");
 
 async Task WaitForDatabaseAsync(string conn_str)
 {

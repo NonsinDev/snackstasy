@@ -10,23 +10,27 @@ namespace Backend.Router
     {
         public static void MapTicketRoutes(this RouteGroupBuilder group, string conn_str)
         {
-            group.MapGet("/tickets/all", async () =>
+            group.MapGet("/tickets/{ticket_id}", async (string ticket_id) =>
             {
                 try
                 {
                     using var conn = new MySqlConnection(conn_str);
-                    var users = await conn.QueryAsync<User>(
-                        "SELECT user_id, first_name, last_name, balance FROM users;");
 
-                    return Results.Ok(users);
+                    var user = await conn.QueryFirstOrDefaultAsync<User>(
+                        "SELECT user_id, first_name, last_name, balance FROM users WHERE ticket_id = @ticket_id;",
+                        new { ticket_id });
+
+                    if (user == null)
+                        return Results.NotFound(new { error = "User not found for this ticket_id" });
+
+                    return Results.Ok(user);
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error in GET /tickets/all: {ex}");
+                    Console.WriteLine($"Error in GET /tickets/{{ticket_id}}: {ex}");
                     return Results.Problem("Internal server error: " + ex.Message);
                 }
             });
-
             group.MapPost("/tickets/book", async (BookRequest req) =>
             {
                try

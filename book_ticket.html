@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ticket Buchung</title>
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.1/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js" defer></script>
     <style>
         * {
             margin: 0;
@@ -172,349 +172,209 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🎫 Ticket Buchung</h1>
-        
-        <form id="bookingForm">
-            <div class="form-group">
-                <label for="firstName">Vorname</label>
-                <input type="text" id="firstName" name="firstName" placeholder="z.B. Max" required>
-            </div>
-            <div class="form-group">
-                <label for="lastName">Nachname</label>
-                <input type="text" id="lastName" name="lastName" placeholder="z.B. Mustermann" required>
-            </div>
-            <button type="submit">Ticket buchen</button>
-        </form>
+<div class="container">
+    <h1>🎫 Ticket Buchung</h1>
 
-        <div id="result" class="result"></div>
-    </div>
+    <form id="bookingForm">
+        <div class="form-group">
+            <label for="firstName">Vorname</label>
+            <input type="text" id="firstName" name="firstName" placeholder="z.B. Max" required>
+        </div>
+        <div class="form-group">
+            <label for="lastName">Nachname</label>
+            <input type="text" id="lastName" name="lastName" placeholder="z.B. Mustermann" required>
+        </div>
+        <button type="submit">Ticket buchen</button>
+    </form>
 
-    <!-- Versteckte Ticket-Vorschau für PDF-Export -->
-    <div id="ticketPreview"></div>
+    <div id="result" class="result"></div>
+</div>
 
-    <script>
+<!-- Versteckte Ticket-Vorschau für PDF-Export -->
+<div id="ticketPreview"></div>
 
-const BaseUrl = "http://localhost:5002/v1";
+<script>
 
-            async function getTicketData() {
+    const BaseUrl = "http://localhost:5002/v1";
+
+    async function getTicketData(ticket_id) {
+        try {
+            const res = await axios.get(`${BaseUrl}/tickets/${ticket_id}`);
+            return res.data;
+        } catch (err) {
+            console.error("Fehler beim Laden der Ticket-Daten", err);
+            return null;
+        }
+    }
+
+            let lastTicketData = null;
+
+            document.getElementById('bookingForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const firstName = document.getElementById('firstName').value.trim();
+                const lastName = document.getElementById('lastName').value.trim();
+                const resultDiv = document.getElementById('result');
+
+                // Validierung
+                if (!firstName || !lastName) {
+                    resultDiv.innerHTML = '<div class="error">Bitte füllen Sie alle Felder aus.</div>';
+                    resultDiv.classList.add('show');
+                    return;
+                }
+
+                // Loading-Zustand
+                resultDiv.innerHTML = '<div class="loading">Ticket wird erstellt...</div>';
+                resultDiv.classList.add('show');
+
                 try {
-                    const res = await axios.get(`${BaseUrl}/login-check`, {
-                        withCredentials: true
+                    const response = await fetch('http://localhost:5002/v1/tickets/book', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            first_name: firstName,
+                            last_name: lastName
+                        })
                     });
 
-                    if (!res.data.logged_in) {
-                        alert("Nicht eingeloggt!");
-                        return null;
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        lastTicketData = data;
+                        console.log(data);
+                        const qrContent = `${data.last_name} ${data.first_name} ${data.id}`;
+
+                        resultDiv.innerHTML = `
+                            <h2>Ticket erfolgreich erstellt!</h2>
+                            <div class="button-group">
+                                <button type="button" class="button-success" onclick="openTicketInNewTab()">📄 Im Browser ansehen</button>
+                                <button type="button" class="button-success" onclick="downloadTicketAsPDF()">📥 Als PDF herunterladen</button>
+                            </div>
+                            <button type="button" class="button-secondary" onclick="location.reload()">➕ Neues Ticket</button>
+                        `;
+
+                        // QR-Code generieren und speichern (nicht in Vorschau anzeigen)
+                        generateQRCode(qrContent);
+
+                        document.getElementById('bookingForm').reset();
+                    } else {
+                        resultDiv.innerHTML = `<div class="error">Fehler: ${escapeHtml(data.error || 'Unbekannter Fehler')}</div>`;
                     }
-
-                    return res.data;
-                } catch (err) {
-                    console.error("Fehler beim Laden der Ticket-Daten", err);
-                    return null;
+                } catch (error) {
+                    resultDiv.innerHTML = `<div class="error">Fehler beim Buchen: ${escapeHtml(error.message)}</div>`;
                 }
-        }
-        
-        let lastTicketData = null;
+            });
 
-        document.getElementById('bookingForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const firstName = document.getElementById('firstName').value.trim();
-            const lastName = document.getElementById('lastName').value.trim();
-            const resultDiv = document.getElementById('result');
-            
-            // Validierung
-            if (!firstName || !lastName) {
-                resultDiv.innerHTML = '<div class="error">Bitte füllen Sie alle Felder aus.</div>';
-                resultDiv.classList.add('show');
-                return;
+            function generateQRCode(content) {
+                // QR-Code wird später beim Anzeigen/PDF-Export generiert
+                // Hier speichern wir nur den Inhalt
+                lastTicketData.qrContent = content;
             }
 
-            // Loading-Zustand
-            resultDiv.innerHTML = '<div class="loading">Ticket wird erstellt...</div>';
-            resultDiv.classList.add('show');
-            
-            try {
-                const response = await fetch('http://localhost:5002/v1/tickets/book', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        first_name: firstName,
-                        last_name: lastName
-                    })
-                });
-                
-                const data = await response.json();
-                
-                if (response.ok) {
-                    lastTicketData = data;
-                    const qrContent = `${data.last_name} ${data.first_name} ${data.id}`;
-                    
-                    resultDiv.innerHTML = `
-                        <h2>Ticket erfolgreich erstellt!</h2>
-                        <div class="button-group">
-                            <button type="button" class="button-success" onclick="openTicketInNewTab()">📄 Im Browser ansehen</button>
-                            <button type="button" class="button-success" onclick="downloadTicketAsPDF()">📥 Als PDF herunterladen</button>
-                        </div>
-                        <button type="button" class="button-secondary" onclick="location.reload()">➕ Neues Ticket</button>
-                    `;
-                    
-                    // QR-Code generieren und speichern (nicht in Vorschau anzeigen)
-                    generateQRCode(qrContent);
-                    
-                    document.getElementById('bookingForm').reset();
-                } else {
-                    resultDiv.innerHTML = `<div class="error">Fehler: ${escapeHtml(data.error || 'Unbekannter Fehler')}</div>`;
-                }
-            } catch (error) {
-                resultDiv.innerHTML = `<div class="error">Fehler beim Buchen: ${escapeHtml(error.message)}</div>`;
+            function openTicketInNewTab() {
+                if (!lastTicketData) return;
+
+                const ticketHTML = generateTicketHTML(lastTicketData);
+                const newWindow = window.open('', '_blank');
+                newWindow.document.write(ticketHTML);
+                newWindow.document.close();
             }
-        });
 
-        function generateQRCode(content) {
-            // QR-Code wird später beim Anzeigen/PDF-Export generiert
-            // Hier speichern wir nur den Inhalt
-            lastTicketData.qrContent = content;
-        }
+            async function downloadTicketAsPDF() {
+        if (!lastTicketData) return;
 
-        function openTicketInNewTab() {
-            if (!lastTicketData) return;
-            
-            const ticketHTML = generateTicketHTML(lastTicketData);
-            const newWindow = window.open('', '_blank');
-            newWindow.document.write(ticketHTML);
-            newWindow.document.close();
-        }
+        const ticket_id = lastTicketData.ticketId || lastTicketData.id;
 
-        async function downloadTicketAsPDF() {
-    // 🔄 Daten vom Backend holen
-    const data = await getTicketData();
-    if (!data) return;
+        const data = await getTicketData(ticket_id);
+        if (!data) return;
 
-    // 📦 in dein Format bringen (wichtig!)
-    const lastTicketData = {
-        ticket_id: data.ticket_id,
-        user_id: data.user_id,
-        // falls du mehr brauchst → hier ergänzen
-    };
+        const ticketData = {
+            id: ticket_id,
+            first_name: data.first_name ?? "",
+            last_name: data.last_name ?? "",
+            qrContent: `${ticket_id}`
+        };
 
-    const element = document.createElement('div');
-    element.innerHTML = generateTicketHTML(lastTicketData, true);
+        const element = document.createElement('div');
+        element.innerHTML = generateTicketHTML(ticketData);
 
-    document.body.appendChild(element);
+        document.body.appendChild(element);
 
-    await new Promise(resolve => setTimeout(resolve, 500));
+        // 🔥 QR-Code erzeugen (JETZT korrekt!)
+        await renderQRCode(element, ticketData.qrContent);
 
-    const opt = {
-        margin: 10,
-        filename: `Ticket_${lastTicketData.ticket_id}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
-    };
+        // kurz warten für Rendering
+        await new Promise(resolve => setTimeout(resolve, 300));
 
-    await html2pdf().set(opt).from(element).save();
+        const opt = {
+            margin: 10,
+            filename: `Ticket_${ticketData.id}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
+        };
 
-    document.body.removeChild(element);
-}
+        await html2pdf().set(opt).from(element).save();
 
-        function generateTicketHTML(ticketData, forPDF = false) {
-            return `
-                <!DOCTYPE html>
-                <html lang="de">
-                <head>
-                    <meta charset="UTF-8">
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <title>Ticket ${escapeHtml(ticketData.id)}</title>
-                    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"><\/script>
-                    <style>
-                        * {
-                            margin: 0;
-                            padding: 0;
-                            box-sizing: border-box;
-                        }
+        document.body.removeChild(element);
+    }
 
-                        body {
-                            font-family: 'Arial', sans-serif;
-                            background: #f5f5f5;
-                            padding: 20px;
-                            display: flex;
-                            justify-content: center;
-                            align-items: center;
-                            min-height: 100vh;
-                        }
+    function generateTicketHTML(ticketData) {
+        return `
+            <div class="ticket-container">
+                <div class="ticket-header">
+                    <h1>🎫 Ticket</h1>
+                    <p>Gültig für die Veranstaltung</p>
+                </div>
 
-                        .ticket-container {
-                            background: white;
-                            border-radius: 15px;
-                            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-                            padding: 40px;
-                            max-width: 500px;
-                            width: 100%;
-                        }
-
-                        .ticket-header {
-                            text-align: center;
-                            margin-bottom: 30px;
-                            border-bottom: 2px solid #667eea;
-                            padding-bottom: 20px;
-                        }
-
-                        .ticket-header h1 {
-                            color: #667eea;
-                            font-size: 28px;
-                            margin-bottom: 10px;
-                        }
-
-                        .ticket-header p {
-                            color: #999;
-                            font-size: 14px;
-                        }
-
-                        .ticket-info {
-                            margin-bottom: 30px;
-                        }
-
-                        .info-row {
-                            display: flex;
-                            justify-content: space-between;
-                            padding: 15px;
-                            border-bottom: 1px solid #eee;
-                            align-items: center;
-                        }
-
-                        .info-row:last-child {
-                            border-bottom: none;
-                        }
-
-                        .info-label {
-                            font-weight: bold;
-                            color: #667eea;
-                            font-size: 14px;
-                            min-width: 120px;
-                        }
-
-                        .info-value {
-                            color: #333;
-                            font-size: 16px;
-                            text-align: right;
-                        }
-
-                        .qr-code-container {
-                            text-align: center;
-                            margin: 30px 0;
-                            padding: 20px;
-                            background: #f9f9f9;
-                            border-radius: 10px;
-                            border: 2px dashed #ddd;
-                        }
-
-                        .qr-code-container canvas {
-                            max-width: 100%;
-                            height: auto;
-                        }
-
-                        .qr-label {
-                            margin-top: 10px;
-                            font-size: 12px;
-                            color: #999;
-                            font-weight: 500;
-                        }
-
-                        .ticket-footer {
-                            text-align: center;
-                            padding-top: 20px;
-                            border-top: 2px solid #667eea;
-                            color: #999;
-                            font-size: 12px;
-                        }
-
-                        @media print {
-                            body {
-                                background: white;
-                                padding: 0;
-                            }
-                            .ticket-container {
-                                box-shadow: none;
-                                border-radius: 0;
-                            }
-                        }
-                    </style>
-                </head>
-                <body>
-                    <div class="ticket-container">
-                        <div class="ticket-header">
-                            <h1>🎫 Ticket</h1>
-                            <p>Gültig für die Veranstaltung</p>
-                        </div>
-
-                        <div class="ticket-info">
-                            <div class="info-row">
-                                <span class="info-label">Ticket-ID:</span>
-                                <span class="info-value">${escapeHtml(String(ticketData.id))}</span>
-                            </div>
-                            <div class="info-row">
-                                <span class="info-label">Vorname:</span>
-                                <span class="info-value">${escapeHtml(ticketData.first_name)}</span>
-                            </div>
-                            <div class="info-row">
-                                <span class="info-label">Nachname:</span>
-                                <span class="info-value">${escapeHtml(ticketData.last_name)}</span>
-                            </div>
-
-                        </div>
-
-                        <div class="qr-code-container">
-                            <canvas id="qrCanvas"></canvas>
-                            <div class="qr-label">QR-Code (Nachname Vorname Ticket-ID)</div>
-                        </div>
-
-                        <div class="ticket-footer">
-                            <p>Bitte bewahren Sie dieses Ticket sicher auf.</p>
-                        </div>
+                <div class="ticket-info">
+                    <div class="info-row">
+                        <span class="info-label">Ticket-ID:</span>
+                        <span class="info-value">${escapeHtml(String(ticketData.id))}</span>
                     </div>
+                    <div class="info-row">
+                        <span class="info-label">Vorname:</span>
+                        <span class="info-value">${escapeHtml(ticketData.first_name)}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Nachname:</span>
+                        <span class="info-value">${escapeHtml(ticketData.last_name)}</span>
+                    </div>
+                </div>
 
-                    <script>
-                        // QR-Code generieren
-                        QRCode.toCanvas(
-                            document.getElementById('qrCanvas'),
-                            '${ticketData.qrContent || ''}',
-                            {
-                                errorCorrectionLevel: 'H',
-                                type: 'image/jpeg',
-                                quality: 0.95,
-                                margin: 1,
-                                width: 300,
-                                color: {
-                                    dark: '#000000',
-                                    light: '#FFFFFF'
-                                }
-                            },
-                            function (error) {
-                                if (error) {
-                                    console.error('QR-Code Fehler:', error);
-                                }
-                            }
-                        );
-                    <\/script>
-                </body>
-                </html>
-            `;
-        }
+                <div class="qr-code-container">
+                    <canvas class="qrCanvas"></canvas>
+                    <div class="qr-label">QR-Code</div>
+                </div>
+            </div>
+        `;
+    }
 
-        function escapeHtml(text) {
-            const map = {
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                '"': '&quot;',
-                "'": '&#039;'
-            };
-            return text.replace(/[&<>"']/g, m => map[m]);
-        }
-    </script>
+    async function renderQRCode(container, content) {
+        const canvas = container.querySelector('.qrCanvas');
+        if (!canvas) return;
+
+        await QRCode.toCanvas(canvas, content, {
+            width: 300,
+            margin: 1
+        });
+    }
+
+            function escapeHtml(text) {
+        if (text === null || text === undefined) return "";
+
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+
+        return String(text).replace(/[&<>"']/g, m => map[m]);
+    }
+</script>
 </body>
 </html>
