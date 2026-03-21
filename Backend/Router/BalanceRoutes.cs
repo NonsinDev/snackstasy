@@ -1,5 +1,7 @@
 using Dapper;
 using MySqlConnector;
+using Backend.Models;
+
 
 namespace Backend.Router
 {
@@ -20,14 +22,14 @@ namespace Backend.Router
                     {
                         const string balance_check_query =
                             "SELECT balance FROM users WHERE user_id = @user_id;";
-                        var exists = await conn.ExecuteScalarAsync<long>(balance_check_query, new { user_id });
+                        var exists = await conn.ExecuteScalarAsync<long>(balance_check_query, new { req.user_id });
                         if (exists == 0)
                             return Results.NotFound(new { error = "User not found." });
                         
                         return Results.BadRequest(new { error = "Insufficient balance." });
                     }
 
-                    return Results.Ok(new { message = $"Successfully removed {amount} from user {user_id}." });
+                    return Results.Ok();
                 }
                 catch (Exception ex)
                 {
@@ -37,7 +39,7 @@ namespace Backend.Router
             });
 
 
-            group.MapPut("/balance/{user_id}/add/{amount}", async (string user_id, decimal amount) =>
+            group.MapPut("/balance/{user_id}/add/{amount}", async (BalanceUpdateRequest req) =>
             {
                 try
                 {
@@ -45,12 +47,12 @@ namespace Backend.Router
                     const string query =
                         "UPDATE users SET balance = balance + @amount WHERE user_id = @user_id;";
 
-                    int rows_affected = await conn.ExecuteAsync(query, new { amount, user_id });
+                    int rows_affected = await conn.ExecuteAsync(query, new { req.amount, req.user_id });
 
                     if (rows_affected == 0)
                         return Results.NotFound(new { error = "User not found." });
 
-                    return Results.Ok(new { message = $"Successfully added {amount} to user {user_id}." });
+                    return Results.Ok();
                 }
                 catch (Exception ex)
                 {

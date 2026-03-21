@@ -22,7 +22,7 @@ builder.Services.AddSession(options =>
 //   options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
 });
 
-var app = builder.Build();
+WebApplication app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI();
 
@@ -81,7 +81,7 @@ api_v1.MapBalanceRoutes(conn_str);
 api_v1.MapStandRoutes(conn_str);
 api_v1.MapItemRoutes(conn_str);
 
-app.Run("http://localhost:5002");
+app.Run(URL);
 
 async Task WaitForDatabaseAsync(string conn_str)
 {
@@ -92,7 +92,7 @@ async Task WaitForDatabaseAsync(string conn_str)
     {
         try
         {
-            using var conn = new MySqlConnection(conn_str);
+            using MySqlConnection conn = new MySqlConnection(conn_str);
             await conn.OpenAsync();
             conn.Close();
             Console.WriteLine("Database is ready!");
@@ -120,11 +120,11 @@ async Task ExecuteSqlFileAsync(string conn_str, string filePath)
 
     string sql = await File.ReadAllTextAsync(filePath);
 
-    using var conn = new MySqlConnection(conn_str);
+    using MySqlConnection conn = new MySqlConnection(conn_str);
     await conn.OpenAsync();
 
     // SQL-Datei in einzelne Statements aufsplitten und ausführen
-    foreach (var statement in sql.Split(";", StringSplitOptions.RemoveEmptyEntries))
+    foreach (string statement in sql.Split(";", StringSplitOptions.RemoveEmptyEntries))
     {
         if (!string.IsNullOrWhiteSpace(statement))
         {

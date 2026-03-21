@@ -13,8 +13,8 @@ namespace Backend.Router
             {
                 try
                 {
-                    using var conn = new MySqlConnection(conn_str);
-                    var stands = await conn.QueryAsync<Stand>("SELECT stand_id, name, pickup_id, tablet_id FROM stands;");
+                    using MySqlConnection conn = new MySqlConnection(conn_str);
+                    Stand stands = await conn.QueryFirstAsync<Stand>("SELECT stand_id, name, pickup_id, tablet_id FROM stands;");
 
                     return Results.Ok(stands);
                 }
@@ -30,8 +30,8 @@ namespace Backend.Router
             {
                 try
                 {
-                    using var conn = new MySqlConnection(conn_str);
-                    var stand = await conn.QueryFirstAsync<Stand>($"SELECT stand_id, name, pickup_id, tablet_id FROM stands WHERE stand_id = {stand_id};");
+                    using MySqlConnection conn = new MySqlConnection(conn_str);
+                    Stand stand = await conn.QueryFirstAsync<Stand>($"SELECT stand_id, name, pickup_id, tablet_id FROM stands WHERE stand_id = {stand_id};");
 
                     if (stand == null)
                         return Results.NotFound(new { error = "Stand not found." });
@@ -53,7 +53,7 @@ namespace Backend.Router
                     if (string.IsNullOrWhiteSpace(req.name))
                         return Results.BadRequest(new { error = "Stand name is required." });
 
-                    using var conn = new MySqlConnection(conn_str);
+                    using MySqlConnection conn = new MySqlConnection(conn_str);
 
                     int id = await conn.QueryFirstAsync<int>($"INSERT INTO stands (name, pickup_id, tablet_id) VALUES ({req.name}, {req.pickup_id}, {req.tablet_id});SELECT LAST_INSERT_ID();");
 
@@ -75,12 +75,14 @@ namespace Backend.Router
             // Update stand
             group.MapPut("/stands/{stand_id}", async (int stand_id, UpdateStandRequest req) =>
             {
-                try
+                return Results.Ok("Needs rework before use.");
+
+                /* try
                 {
-                    using var conn = new MySqlConnection(conn_str);
+                    using MySqlConnection conn = new MySqlConnection(conn_str);
                     
-                    var updates = new List<string>();
-                    var parameters = new DynamicParameters();
+                    List<string> updates = new List<string>();
+                    DynamicParameters parameters = new DynamicParameters();
                     parameters.Add("id", stand_id);
 
 
@@ -100,13 +102,15 @@ namespace Backend.Router
                 {
                     Console.WriteLine($"Error in PUT /stands/{stand_id}: {ex}");
                     return Results.Problem("Internal server error: " + ex.Message);
-                }
+                } */
             });
 
             // Delete stand
             group.MapDelete("/stands/{stand_id}", async (int stand_id) =>
             {
-                try
+                return Results.Ok("Needs rework before use.");
+
+                /* try
                 {
                     using var conn = new MySqlConnection(conn_str);
                     
@@ -131,7 +135,7 @@ namespace Backend.Router
                 {
                     Console.WriteLine($"Error in DELETE /stands/{stand_id}: {ex}");
                     return Results.Problem("Internal server error: " + ex.Message);
-                }
+                } */
             });
         }
     }

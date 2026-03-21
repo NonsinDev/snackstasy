@@ -14,9 +14,9 @@ namespace Backend.Router
             {
                 try
                 {
-                    using var conn = new MySqlConnection(conn_str);
+                    using MySqlConnection conn = new MySqlConnection(conn_str);
 
-                    var user = await conn.QueryFirstOrDefaultAsync<User>(
+                    User? user = await conn.QueryFirstAsync<User>(
                         "SELECT user_id, first_name, last_name, balance FROM users WHERE ticket_id = @ticket_id;",
                         new { ticket_id });
 
@@ -31,6 +31,7 @@ namespace Backend.Router
                     return Results.Problem("Internal server error: " + ex.Message);
                 }
             });
+
             group.MapPost("/tickets/book", async (BookRequest req) =>
             {
                try
@@ -40,7 +41,7 @@ namespace Backend.Router
 
                     string ticketId = TicketService.GenerateTicketId(req.first_name, req.last_name);
 
-                    using var conn = new MySqlConnection(conn_str);
+                    using MySqlConnection conn = new MySqlConnection(conn_str);
 
                     const string query =
                         @"INSERT INTO users (first_name, last_name, balance, ticket_id)
