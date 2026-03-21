@@ -3,12 +3,6 @@
 This folder contains a .NET 8.0 web API that manages customer tickets, balance, and orders for the food ordering system. The API provides endpoints for ticket management, user authentication, and balance operations.
 More functions in funture.
 
-Run with Docker Compose from the repository root:
-
-```bash
-docker-compose down -v && docker-compose up --build
-```
-
 After startup the API will be available at http://localhost:5002/v1/
 
 ## Authentication & Session Management
@@ -64,4 +58,4 @@ POST /login
 
 ## API Routes
 
-For detailed API documentation, visit the [Swagger UI](../swagger.html) HTML side in the route folder.
+For detailed API documentation, visit the Swagger UI under `localhost:5002/swagger` when the backend is running.

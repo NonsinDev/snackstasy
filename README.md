@@ -4,19 +4,21 @@ Simple web application to order food at festivals and concerts.
 
 ## Quickstart
 
-Start from the repository root (requires Docker & Docker Compose):
-
+Go to the backend folder with:
 ```bash
-docker-compose down -v && docker-compose up --build
+cd .\Backend\
+```
+
+And then:
+```bash
+dotnet run
 ```
 
 After startup the backend API is available at http://localhost:5002/v1/ by default.
 
 ## API Endpoints
 
-Base URL: `http://localhost:5002`
-
-Sufix: `v1`
+Base URL: `http://localhost:5002/v1/`
 
 Key routes:
 - **`/tickets`** – Manage customer tickets (list, create, book)
@@ -25,7 +27,8 @@ Key routes:
 - **`/stands`** – Manage stands (list, create, edit, remove)
 - **`/items`** – Manage items (list, create, edit, remove, stock)
 
-For comprehensive API documentation, see [Backend/README.md](Backend/README.md) or the [Swagger UI](swagger.html).
+For comprehensive API documentation, see [Backend/README.md](Backend/README.md) or the Swagger UI at `http://localhost:5002/swagger`.
+
 
 ## Authentication
 
@@ -41,8 +44,7 @@ See [Backend/README.md](Backend/README.md#authentication--session-management) fo
 
 - **Backend:** .NET 8.0 API in the `Backend/` folder with Dapper for data access
 - **Frontend:** Vue 3 + TypeScript application in `Frontend/snackstasy_vue/`
-- **Database:** MySQL (defined in `docker-compose.yml` and `mysql-init/init.sql`)
-- **Containerization:** Docker & Docker Compose for local development
+- **Database:** MySQL (`mysql-init/init.sql`)
 
 ## Customization
 
