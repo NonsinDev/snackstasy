@@ -2,15 +2,33 @@
 import profileManImage from '@/assets/Profil_man.png'
 import snackstasyIcon from '/Snackstasy_Icon.png'
 import Dialog from 'primevue/dialog'
-import { ref, computed } from 'vue'
+import { ref, computed, watchEffect, onMounted, watch } from 'vue'
 import Button from 'primevue/button'
 import Dialog_profile from './Dialog_profile.vue'
 import Dialog_balance from './Dialog_balance.vue'
+import { UserData } from '@/services/Header'
+import type { User_Data } from '@/model/UserData'
+import type { Login_response } from '@/model/AuthentificationInterface'
+import { checkSession } from '@/services/Login'
 
 const visible = ref(false)
 const visibleBalance = ref(false)
 const balance = ref(25.0)
 const profileImage = ref(profileManImage)
+const currentUser = ref<User_Data | undefined>();
+const sessionData = ref<Login_response>();
+
+
+  onMounted(async () => {
+  await loadSessionData(); // nur einmal beim Laden
+});
+
+// Wenn sessionData sich ändert, lade UserData
+watch(sessionData, async (newSession) => {
+  if (newSession) {
+    await loadUserData();
+  }
+});
 
 // Handlers
 const handleProfileImageChange = (newImage: string) => {
@@ -22,6 +40,15 @@ const handleBalanceUpdate = (newBalance: number) => {
 
 // Mobile Detection (optional, für Template)
 const isMobile = computed(() => window.innerWidth <= 600)
+
+async function loadUserData() {
+  if (!sessionData.value) return;
+  currentUser.value = await UserData(sessionData.value.ticket_id);
+}
+
+async function loadSessionData() {
+  sessionData.value = await checkSession();
+}
 </script>
 
 <template>
@@ -33,10 +60,10 @@ const isMobile = computed(() => window.innerWidth <= 600)
 
     <h1 class="snackstasy-title">Snackstasy</h1>
 
-    <div class="header-actions">
+    <div class="header-actions" v-if="currentUser">
       <!-- Guthaben -->
       <button class="header-budget" @click="visibleBalance = true" title="Guthaben aufladen">
-        <h4>{{ balance.toFixed(2) }} €</h4>
+        <h4>{{ currentUser.balance.toFixed(2) }} €</h4>
       </button>
 
       <!-- Profilbild -->
@@ -54,9 +81,11 @@ const isMobile = computed(() => window.innerWidth <= 600)
       :style="{ width: '90vw', maxWidth: '700px', marginTop: '5rem' }"
     >
       <Dialog_balance
-        :current-balance="balance"
+      v-if="currentUser"
+        :currentUser="currentUser"
         @update-balance="handleBalanceUpdate"
         @close-dialog="visibleBalance = false"
+        @refresh-user="loadUserData"
       />
       <template #footer>
         <div class="dialog-footer">
@@ -76,7 +105,7 @@ const isMobile = computed(() => window.innerWidth <= 600)
       <Dialog_profile
         :visible="visible"
         :current-image="profileImage"
-        :balance="balance"
+        :currentUser="currentUser"
         @update-profile-image="handleProfileImageChange"
         @switch-to-balance="
           () => {

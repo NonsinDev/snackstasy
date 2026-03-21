@@ -2,10 +2,11 @@
 import { ref } from 'vue'
 import profileManImage from '@/assets/Profil_man.png'
 import profileWomanImage from '@/assets/Profil_woman.png'
+import type { User_Data } from '@/model/UserData';
 
 const props = defineProps<{
   currentImage: string
-  balance: number
+  currentUser: User_Data | undefined
 }>()
 
 const emit = defineEmits<{
@@ -13,8 +14,6 @@ const emit = defineEmits<{
   switchToBalance: []
 }>()
 
-const userName = ref('Max Mustermann')
-const ticketId = ref('TICKET-2024-001')
 
 // Balance / Rechnungen - wird vom Header übergeben
 const topUps = ref([
@@ -60,12 +59,12 @@ const handleBalanceClick = () => {
 
           <div class="info-item">
             <label class="label">Name</label>
-            <div class="value-display">{{ userName }}</div>
+            <div class="value-display">{{ props.currentUser?.first_name }} {{ props.currentUser?.last_name }}</div>
           </div>
 
           <div class="info-item">
             <label class="label">Ticket ID</label>
-            <div class="value-display ticket-id">{{ ticketId }}</div>
+            <div class="value-display ticket-id">{{ props.currentUser?.ticket_id }}</div>
           </div>
         </div>
       </div>
@@ -75,7 +74,7 @@ const handleBalanceClick = () => {
           <h2 class="info-title">Guthaben</h2>
 
           <div class="balance-display" @click="handleBalanceClick">
-            <div class="balance-amount">{{ balance.toFixed(2) }} €</div>
+            <div class="balance-amount" v-if="props.currentUser">{{ props.currentUser.balance.toFixed(2) }} €</div>
             <p class="balance-label">Aktueller Kontostand</p>
           </div>
 
