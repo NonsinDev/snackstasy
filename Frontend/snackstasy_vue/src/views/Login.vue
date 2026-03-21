@@ -6,6 +6,7 @@ import { QrcodeStream } from 'vue-qrcode-reader'
 import { type DetectedBarcode } from 'barcode-detector/pure'
 import InputText from 'primevue/inputtext'
 import { Login } from '@/services/Login'
+import { initAuth } from "@/services/Authentification";
 
 const username = ref('')
 const ticket_id = ref('')
@@ -15,27 +16,23 @@ const showScanner = ref(false)
 const isLoggingIn = ref(false)
 const loginSuccess = ref(false)
 
-async function login() {
-  try {
-    let result = await Login({
-      username: username.value,
-      ticket_id: ticket_id.value,
-    })
-    if (result.logged_in == true) {
-      sessionStorage.setItem('auth', 'true')
-      router.push(`/`)
-    } else {
-      alert('Falscher Benutzername oder Passwort')
-      console.warn(
-        'Falscher Benutzername oder Passwort ',
 
-        result,
-        username.value,
-        ticket_id.value,
-      )
+
+async function handleLogin() {
+  try {
+    const result = await Login({ username: username.value, ticket_id: ticket_id.value });
+
+    // ⚡ Session im Frontend direkt aktualisieren
+    await initAuth();
+
+    if (result.logged_in) {
+      router.push(`/`);
+    } else {
+      alert("Falscher Benutzername oder Passwort");
     }
-  } catch (error) {
-    alert('catch ')
+  } catch (err) {
+    alert("Fehler beim Login");
+    console.error(err);
   }
 }
 
@@ -121,7 +118,7 @@ onMounted(() => {
             type="text"
             class="field__input"
             placeholder="Benutzername"
-            @keyup.enter="login"
+            @keyup.enter="handleLogin"
           />
         </div>
 
@@ -132,7 +129,7 @@ onMounted(() => {
             id="password"
             class="field__input"
             placeholder="Ticket ID"
-            @keyup.enter="login"
+            @keyup.enter="handleLogin"
           />
           <button
             class="qr-btn"
@@ -178,7 +175,7 @@ onMounted(() => {
       <!-- Login Button -->
       <button
         class="login-btn"
-        @click="login"
+        @click="handleLogin"
         :disabled="isLoggingIn || loginSuccess"
         :class="{ 'login-btn--loading': isLoggingIn, 'login-btn--success': loginSuccess }"
       >
