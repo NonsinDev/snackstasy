@@ -39,8 +39,6 @@ namespace Backend.Router
                     if (string.IsNullOrWhiteSpace(req.first_name) || string.IsNullOrWhiteSpace(req.last_name))
                         return Results.BadRequest(new { error = "First name and last name are required." });
 
-                    string ticketId = TicketService.GenerateTicketId(req.first_name, req.last_name);
-
                     using MySqlConnection conn = new MySqlConnection(conn_str);
 
                     const string query =
@@ -48,16 +46,38 @@ namespace Backend.Router
                          VALUES (@fn, @ln, 0, @ticketId);
                           SELECT LAST_INSERT_ID();";
 
-                    int user_id = await conn.QueryFirstAsync<int>(query,
-                        new { fn = req.first_name, ln = req.last_name, ticketId });
+                    const int maxAttempts = 10;
+                    int attempt = 0;
 
-                    return Results.Ok(new
+                    while (attempt < maxAttempts)
                     {
-                        user_id,
-                        ticketId,
-                        req.first_name,
-                        req.last_name
-                    });
+                        attempt++;
+                        string ticketId = TicketService.GenerateTicketId(req.first_name, req.last_name);
+
+                        try
+                        {
+                            int user_id = await conn.QueryFirstAsync<int>(query,
+                                new { fn = req.first_name, ln = req.last_name, ticketId });
+
+                            return Results.Ok(new
+                            {
+                                user_id,
+                                ticketId,
+                                req.first_name,
+                                req.last_name
+                            });
+                        }
+                        catch (MySqlException ex) when (ex.Number == 1062)
+                        {
+                            // Duplicate ticket_id, retry with a freshly generated id.
+                            continue;
+                        }
+                    }
+
+                    return Results.Problem(
+                        detail: "Could not generate a unique ticket id. Please try again.",
+                        statusCode: StatusCodes.Status409Conflict,
+                        title: "Ticket booking conflict");
                 }
                 catch (Exception ex)
                 {
