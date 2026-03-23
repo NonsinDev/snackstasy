@@ -2,14 +2,17 @@
 import { ref, computed } from 'vue'
 import InputNumber from 'primevue/inputnumber'
 import Button from 'primevue/button'
+import type { User_Data } from '@/model/UserData';
+import { AddBalance } from '@/services/Header';
 
 const props = defineProps<{
-  currentBalance: number
+  currentUser: User_Data 
 }>()
 
 const emit = defineEmits<{
   updateBalance: [newBalance: number]
   closeDialog: []
+  refreshUser: []
 }>()
 
 const amounts = [5, 10, 20, 50]
@@ -18,34 +21,43 @@ const isLoading = ref(false)
 
 const balanceAfterTopUp = computed(() => {
   if (customAmount.value) {
-    return props.currentBalance + customAmount.value
+    return props.currentUser?.balance + customAmount.value
   }
-  return props.currentBalance
+  return props.currentUser.balance
 })
 
 const topUpWithAmount = async (amount: number) => {
+  if (!props.currentUser) return
+
   isLoading.value = true
-  // Fake API call
-  await new Promise((resolve) => setTimeout(resolve, 500))
-
-  const newBalance = props.currentBalance + amount
-  emit('updateBalance', newBalance)
-  customAmount.value = null
-  isLoading.value = false
-}
-
-const topUpWithCustomAmount = async () => {
-  if (customAmount.value && customAmount.value > 0) {
-    isLoading.value = true
-    // Fake API call
-    await new Promise((resolve) => setTimeout(resolve, 500))
-
-    const newBalance = props.currentBalance + customAmount.value
-    emit('updateBalance', newBalance)
-    customAmount.value = null
+  try {
+    // echte API aufrufen
+    await AddBalance(props.currentUser.user_id, amount)
+    emit('refreshUser');
+  } catch (error) {
+    console.error("Fehler beim Aufladen:", error)
+    // hier könntest du noch eine Fehlermeldung anzeigen
+  } finally {
     isLoading.value = false
   }
 }
+
+const topUpWithCustomAmount = async () => {
+  if (!props.currentUser || !customAmount.value || customAmount.value <= 0) return
+
+  isLoading.value = true
+  try {
+    await AddBalance(props.currentUser.user_id, customAmount.value)
+    emit('refreshUser');
+    customAmount.value = null
+    isLoading.value = false
+  } catch (error) {
+    console.error("Fehler beim Aufladen:", error)
+  } finally {
+    isLoading.value = false
+  }
+}
+
 </script>
 
 <template>
@@ -55,7 +67,7 @@ const topUpWithCustomAmount = async () => {
       <h2 class="section-title">Aktueller Kontostand</h2>
       <div class="balance-card">
         <span class="currency-symbol">€</span>
-        <span class="balance-amount">{{ props.currentBalance.toFixed(2) }}</span>
+        <span class="balance-amount">{{ props.currentUser.balance.toFixed(2) }}</span>
       </div>
     </div>
 
@@ -107,7 +119,7 @@ const topUpWithCustomAmount = async () => {
       <div class="preview-card">
         <div class="preview-item">
           <span class="preview-label">Aktueller Saldo:</span>
-          <span class="preview-value current">{{ props.currentBalance.toFixed(2) }}€</span>
+          <span class="preview-value current">{{ props.currentUser.balance.toFixed(2) }}€</span>
         </div>
         <div class="preview-plus">+</div>
         <div class="preview-item">

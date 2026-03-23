@@ -4,7 +4,8 @@ export interface Login_data {
 }
 
 export interface Login_response {
-  logged_in: boolean
+  logged_in: boolean;
+  ticket_id: string
 }
 
 export interface CurrenUser_response {

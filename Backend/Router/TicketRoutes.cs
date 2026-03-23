@@ -17,7 +17,8 @@ namespace Backend.Router
                     using MySqlConnection conn = new MySqlConnection(conn_str);
 
                     User? user = await conn.QueryFirstAsync<User>(
-                        "SELECT user_id, first_name, last_name, balance FROM users WHERE ticket_id = @ticket_id;",
+                        "SELECT user_id, first_name, last_name, balance, ticket_id FROM users WHERE ticket_id = @ticket_id;",
+
                         new { ticket_id });
 
                     if (user == null)

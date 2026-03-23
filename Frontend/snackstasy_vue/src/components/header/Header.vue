@@ -2,15 +2,32 @@
 import profileManImage from '@/assets/Profil_man.png'
 import snackstasyIcon from '/Snackstasy_Icon.png'
 import Dialog from 'primevue/dialog'
-import { ref, computed } from 'vue'
+import { ref, computed, watchEffect, onMounted, watch } from 'vue'
 import Button from 'primevue/button'
 import Dialog_profile from './Dialog_profile.vue'
 import Dialog_balance from './Dialog_balance.vue'
+import { UserData } from '@/services/Header'
+import type { User_Data } from '@/model/UserData'
+import type { Login_response } from '@/model/AuthentificationInterface'
+import { checkSession } from '@/services/Login'
 
 const visible = ref(false)
 const visibleBalance = ref(false)
 const balance = ref(25.0)
 const profileImage = ref(profileManImage)
+const currentUser = ref<User_Data | undefined>()
+const sessionData = ref<Login_response>()
+
+onMounted(async () => {
+  await loadSessionData() // nur einmal beim Laden
+})
+
+// Wenn sessionData sich ändert, lade UserData
+watch(sessionData, async (newSession) => {
+  if (newSession) {
+    await loadUserData()
+  }
+})
 
 // Handlers
 const handleProfileImageChange = (newImage: string) => {
@@ -22,6 +39,15 @@ const handleBalanceUpdate = (newBalance: number) => {
 
 // Mobile Detection (optional, für Template)
 const isMobile = computed(() => window.innerWidth <= 600)
+
+async function loadUserData() {
+  if (!sessionData.value) return
+  currentUser.value = await UserData(sessionData.value.ticket_id)
+}
+
+async function loadSessionData() {
+  sessionData.value = await checkSession()
+}
 </script>
 
 <template>
@@ -33,10 +59,10 @@ const isMobile = computed(() => window.innerWidth <= 600)
 
     <h1 class="snackstasy-title">Snackstasy</h1>
 
-    <div class="header-actions">
+    <div class="header-actions" v-if="currentUser">
       <!-- Guthaben -->
       <button class="header-budget" @click="visibleBalance = true" title="Guthaben aufladen">
-        <h4>{{ balance.toFixed(2) }} €</h4>
+        <h4>{{ currentUser.balance.toFixed(2) }} €</h4>
       </button>
 
       <!-- Profilbild -->
@@ -54,13 +80,21 @@ const isMobile = computed(() => window.innerWidth <= 600)
       :style="{ width: '90vw', maxWidth: '700px', marginTop: '5rem' }"
     >
       <Dialog_balance
-        :current-balance="balance"
+        v-if="currentUser"
+        :currentUser="currentUser"
         @update-balance="handleBalanceUpdate"
         @close-dialog="visibleBalance = false"
+        @refresh-user="loadUserData"
       />
       <template #footer>
         <div class="dialog-footer">
-          <Button type="button" label="Schließen" severity="secondary" @click="visibleBalance = false" class="footer-button" />
+          <Button
+            type="button"
+            label="Schließen"
+            severity="secondary"
+            @click="visibleBalance = false"
+            class="footer-button"
+          />
         </div>
       </template>
     </Dialog>
@@ -76,7 +110,7 @@ const isMobile = computed(() => window.innerWidth <= 600)
       <Dialog_profile
         :visible="visible"
         :current-image="profileImage"
-        :balance="balance"
+        :currentUser="currentUser"
         @update-profile-image="handleProfileImageChange"
         @switch-to-balance="
           () => {
@@ -87,7 +121,13 @@ const isMobile = computed(() => window.innerWidth <= 600)
       />
       <template #footer>
         <div class="dialog-footer">
-          <Button type="button" label="Schließen" severity="secondary" @click="visible = false" class="footer-button" />
+          <Button
+            class="footer-button"
+            type="button"
+            label="Schließen"
+            severity="secondary"
+            @click="visible = false"
+          />
         </div>
       </template>
     </Dialog>
@@ -157,7 +197,9 @@ const isMobile = computed(() => window.innerWidth <= 600)
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 .header-profile:hover {
   transform: scale(1.1);
@@ -193,6 +235,36 @@ h4 {
   padding: 1.5rem 2rem;
 }
 
+.footer-button {
+  border-radius: 12px;
+  padding: 0.6rem 1.5rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+
+  background: linear-gradient(135deg, #ffd700, #ffb300);
+  color: #1a1a1a;
+
+  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+  transition: all 0.25s ease;
+}
+
+/* Hover Effekt ✨ */
+.footer-button:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 8px 20px rgba(255, 215, 0, 0.6);
+  background: linear-gradient(135deg, #ffe55c, #ffc107);
+}
+
+/* Klick Effekt */
+.footer-button:active {
+  transform: scale(0.98);
+  box-shadow: 0 2px 6px rgba(255, 215, 0, 0.4);
+}
+
+.dialog-footer {
+  padding: 0.5rem;
+}
 
 /* Mobile Anpassungen */
 @media (max-width: 600px) {
