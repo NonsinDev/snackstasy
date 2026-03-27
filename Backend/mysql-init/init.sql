@@ -40,9 +40,9 @@ CREATE TABLE IF NOT EXISTS items (
  ON DUPLICATE KEY UPDATE first_name = first_name;
 
 -- Users (nur einfügen, wenn ticket_id noch nicht existiert)
-INSERT INTO users (user_id, first_name, last_name, birthday, balance, ticket_id)
+INSERT INTO users (user_id, first_name, last_name, balance, ticket_id)
 VALUES
-  (1,'Max', 'Rubel', '1990-01-01', 100.00, 'MR123456'),
-  (2,'Silas', 'Mohr', '1992-05-15', 50.00, 'SM654321'),
-  (3,'Daniel', 'Jung', '1985-10-20', 75.00, 'JD789012')
+  (1,'Max', 'Rubel', 100.00, 'MR123456'),
+  (2,'Silas', 'Mohr', 50.00, 'SM654321'),
+  (3,'Daniel', 'Jung', 75.00, 'JD789012')
 ON DUPLICATE KEY UPDATE ticket_id = ticket_id;
