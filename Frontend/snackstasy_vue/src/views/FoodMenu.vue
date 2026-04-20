@@ -1,71 +1,55 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import InputText from 'primevue/inputtext'
+import { GetAllStands, ItemsByStandId } from '@/services/Stands'
+import { useFoodStore } from '@/stores/foodStore'
+import type { AllStands } from '@/model/Items'
+import img from '@/assets/corndog.jpg'
 
-interface FoodStand {
-  id: number
-  name: string
-  category: string
-  location: string
-  isOpen: boolean
-  image: string
-}
-
+const router = useRouter()
+const foodStore = useFoodStore()
 const search = ref('')
+const stands = ref<AllStands[]>([])
+const loading = ref(false)
+const error = ref('')
 
-const stands = ref<FoodStand[]>([
-  {
-    id: 1,
-    name: 'Burger Heaven',
-    category: 'Burger',
-    location: 'Zone A',
-    isOpen: true,
-    image: 'https://images.unsplash.com/photo-1550547660-d9450f859349',
-  },
-  {
-    id: 2,
-    name: 'Pizza World',
-    category: 'Pizza',
-    location: 'Zone B',
-    isOpen: false,
-    image: 'https://images.unsplash.com/photo-1548365328-8b849e9c7b2a',
-  },
-  {
-    id: 3,
-    name: 'Asia Wok',
-    category: 'Asiatisch',
-    location: 'Zone C',
-    isOpen: true,
-    image: 'https://images.unsplash.com/photo-1604908176997-431d6d45e13b',
-  },
-  {
-    id: 1,
-    name: 'Burger Heaven',
-    category: 'Burger',
-    location: 'Zone A',
-    isOpen: true,
-    image: 'https://images.unsplash.com/photo-1550547660-d9450f859349',
-  },
-  {
-    id: 2,
-    name: 'Pizza World',
-    category: 'Pizza',
-    location: 'Zone B',
-    isOpen: false,
-    image: 'https://images.unsplash.com/photo-1548365328-8b849e9c7b2a',
-  },
-  {
-    id: 3,
-    name: 'Asia Wok',
-    category: 'Asiatisch',
-    location: 'Zone C',
-    isOpen: true,
-    image: 'https://images.unsplash.com/photo-1604908176997-431d6d45e13b',
-  },
-])
+onMounted(async () => {
+  await fetchStands()
+})
+
+const fetchStands = async () => {
+  loading.value = true
+  error.value = ''
+  try {
+    stands.value = await GetAllStands()
+  } catch (e) {
+    console.error('Fehler beim Laden der Stände:', e)
+    error.value = 'Stände konnten nicht geladen werden'
+  } finally {
+    loading.value = false
+  }
+}
 
 const filteredStands = () => {
   return stands.value.filter((s) => s.name.toLowerCase().includes(search.value.toLowerCase()))
+}
+
+const selectStand = async (stand: AllStands) => {
+  try {
+    loading.value = true
+    const items = await ItemsByStandId(stand.stand_id)
+    foodStore.setStandAndItems(stand, items)
+    router.push({
+      name: 'selected-stand',
+      params: { standId: stand.stand_id },
+    })
+  } catch (e) {
+    console.error('Fehler beim Laden der Items:', e)
+    error.value = 'Items konnten nicht geladen werden'
+  } finally {
+    loading.value = false
+  }
 }
 </script>
 
@@ -77,30 +61,28 @@ const filteredStands = () => {
     </div>
 
     <!-- 📄 Liste -->
-    <div class="list">
-      <div v-for="stand in filteredStands()" :key="stand.id" class="list-card">
+    <div v-if="loading" class="loading-message">Stände werden geladen...</div>
+    <div v-else-if="error" class="error-message">{{ error }}</div>
+    <div v-else class="list">
+      <div
+        v-for="stand in filteredStands()"
+        :key="stand.stand_id"
+        class="list-card"
+        @click="selectStand(stand)"
+      >
         <!-- 🖼️ Bild -->
         <div class="image-wrapper">
-          <img :src="stand.image" />
-
-          <div class="status" :class="stand.isOpen ? 'open' : 'closed'">
-            {{ stand.isOpen ? 'Offen' : 'Geschlossen' }}
-          </div>
+          <img :src="img" />
+          <div class="status">{{ stand.name }}</div>
         </div>
 
         <!-- 📋 Infos -->
         <div class="content">
           <div class="top">
             <h2>{{ stand.name }}</h2>
-            <span class="badge">{{ stand.category }}</span>
           </div>
-
-          <p class="location">📍 {{ stand.location }}</p>
-
           <div class="bottom">
-            <span class="open-text" :class="stand.isOpen ? 'green' : 'red'">
-              {{ stand.isOpen ? 'Jetzt geöffnet' : 'Geschlossen' }}
-            </span>
+            <span class="open-text green">Stand ID: {{ stand.stand_id }}</span>
           </div>
         </div>
       </div>
@@ -207,6 +189,7 @@ const filteredStands = () => {
 .top h2 {
   margin: 0;
   font-size: 20px;
+  font-weight: 800;
 }
 
 /* Kategorie Badge */
@@ -234,9 +217,18 @@ const filteredStands = () => {
   font-weight: bold;
 }
 
-.open-text.red {
+.loading-message,
+.error-message {
+  text-align: center;
+  padding: 40px 20px;
+  font-size: 16px;
+}
+
+.error-message {
   color: #ef4444;
-  font-weight: bold;
+  background: #fee2e2;
+  border-radius: 12px;
+  margin: 20px;
 }
 
 /* 📱 Mobile */
