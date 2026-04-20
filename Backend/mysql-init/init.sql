@@ -47,3 +47,59 @@ VALUES
   (2,'Silas', 'Mohr', '1992-05-15', 50.00, 'SM654321'),
   (3,'Daniel', 'Jung', '1985-10-20', 75.00, 'JD789012')
 ON DUPLICATE KEY UPDATE ticket_id = ticket_id;
+
+-- Default staende
+INSERT INTO stands (stand_id, name, pickup_id, tablet_id)
+VALUES
+  (1,'Burger House', 1, 1),
+  (2,'Pizza World', 2, 2),
+  (3,'Asia Wok', 3, 3),
+  (4,'Corndog Home', 4, 4),
+  (5,'Sushi Palace', 5, 5),
+  (6,'Tacco Island', 6, 6)
+ON DUPLICATE KEY UPDATE stand_id = stand_id;
+
+-- Default items
+INSERT INTO items (item_id,stand_id, name, price, stock)
+VALUES
+  (1, 1, 'Burger Classic', 5.99, 20),
+  (2, 1, 'Cheeseburger', 6.49, 18),
+  (3, 1, 'Double Cheeseburger', 7.99, 12),
+  (4, 1, 'Chicken Burger', 6.99, 15),
+  (5, 1, 'Veggie Burger', 6.49, 10),
+  (6, 1, 'Bacon Burger', 7.49, 14),
+  (7, 1, 'BBQ Burger', 7.99, 11),
+  (8 ,1, 'Spicy Burger', 6.99, 13),
+  (9 ,1, 'Mini Burger', 4.99, 25),
+  (10, 1, 'Kids Burger', 4.49, 30),
+
+  (11, 1, 'Fries Small', 2.49, 40),
+  (12, 1, 'Fries Large', 3.49, 35),
+  (13, 1, 'Cheese Fries', 3.99, 20),
+  (14, 1, 'Chili Fries', 4.49, 18),
+  (15, 1, 'Sweet Potato Fries', 4.99, 16),
+
+  (16, 1, 'Chicken Nuggets', 5.49, 22),
+  (17, 1, 'Hot Wings', 6.99, 15),
+  (18, 1, 'Onion Rings', 3.99, 19),
+  (19, 1, 'Mozzarella Sticks', 4.99, 17),
+  (20, 1, 'Garlic Bread', 3.49, 21),
+
+  (21, 1, 'Cola 0.5L', 2.49, 50),
+  (22, 1, 'Fanta 0.5L', 2.49, 45),
+  (23, 1, 'Sprite 0.5L', 2.49, 45),
+  (24, 1, 'Wasser 0.5L', 1.99, 60),
+  (25, 1, 'Eistee 0.5L', 2.79, 40),
+
+  (26, 2, 'Cola 0.5L', 2.49, 50),
+  (27, 2, 'Fanta 0.5L', 2.49, 45),
+  (28, 2, 'Sprite 0.5L', 2.49, 45),
+  (29, 2, 'Wasser 0.5L', 1.99, 60),
+  (30, 2, 'Eistee 0.5L', 2.79, 40),
+
+  (31, 3, 'Cola 0.5L', 2.49, 50),
+  (32, 3, 'Fanta 0.5L', 2.49, 45),
+  (33, 3, 'Sprite 0.5L', 2.49, 45),
+  (34, 3, 'Wasser 0.5L', 1.99, 60),
+  (35, 3, 'Eistee 0.5L', 2.79, 40)
+ON DUPLICATE KEY UPDATE item_id = item_id;

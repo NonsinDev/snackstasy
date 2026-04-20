@@ -46,31 +46,42 @@ namespace Backend.Router
             });
 
             // Create new stand
-            group.MapPost("/stands/create", async (CreateStandRequest req) =>
-            {
-                try
-                {
-                    if (string.IsNullOrWhiteSpace(req.name))
-                        return Results.BadRequest(new { error = "Stand name is required." });
+group.MapPost("/stands/create", async (CreateStandRequest req) =>
+{
+    try
+    {
+        if (string.IsNullOrWhiteSpace(req.name))
+            return Results.BadRequest(new { error = "Stand name is required." });
 
-                    using var conn = new MySqlConnection(conn_str);
+        using var conn = new MySqlConnection(conn_str);
 
-                    int id = await conn.QueryFirstAsync<int>($"INSERT INTO stands (name, pickup_id, tablet_id) VALUES ({req.name}, {req.pickup_id}, {req.tablet_id});SELECT LAST_INSERT_ID();");
+        var sql = @"
+            INSERT INTO stands (name, pickup_id, tablet_id)
+            VALUES (@Name, @PickupId, @TabletId);
+            SELECT LAST_INSERT_ID();
+        ";
 
-                    return Results.Ok(new
-                    {
-                        stand_id = id,
-                        req.name,
-                        req.pickup_id,
-                        req.tablet_id
-                    });
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Error in POST /stands: {ex}");
-                    return Results.Problem("Internal server error: " + ex.Message);
-                }
-            });
+        int id = await conn.QueryFirstAsync<int>(sql, new
+        {
+            Name = req.name,
+            PickupId = req.pickup_id,
+            TabletId = req.tablet_id
+        });
+
+        return Results.Ok(new
+        {
+            stand_id = id,
+            req.name,
+            req.pickup_id,
+            req.tablet_id
+        });
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error in POST /stands: {ex}");
+        return Results.Problem("Internal server error: " + ex.Message);
+    }
+});
 
             // Update stand
             group.MapPut("/stands/{stand_id}", async (int stand_id, UpdateStandRequest req) =>
