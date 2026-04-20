@@ -9,8 +9,8 @@ namespace Backend.Extensions
         {
             return builder.AddEndpointFilter(async (context, next) =>
             {
-                var http_context = context.HttpContext;
-                var user_id = http_context.Session.GetString("user_id");
+                HttpContext http_context = context.HttpContext;
+                string? user_id = http_context.Session.GetString("user_id");
 
                 if (string.IsNullOrEmpty(user_id))
                 {

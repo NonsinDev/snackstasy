@@ -1,7 +1,8 @@
 import { createRouter, createWebHistory, createWebHashHistory } from 'vue-router'
 import { useAuth, initAuth } from "../services/Authentification";
 import Login from '@/views/Login.vue'
-import FoodMenu from '../views/FoodMenu.vue';
+import FoodMenu from '../views/FoodMenu.vue'
+import SelectedFoodStand from '../views/SelectedFoodStand.vue'
 
 const router = createRouter({
   history: createWebHashHistory(),
@@ -17,6 +18,14 @@ const router = createRouter({
       name: 'home',
       component: FoodMenu,
       meta: { requiresAuth: true,  
+              showHeader: true
+      },
+    },
+    {
+      path: '/stand/:standId',
+      name: 'selected-stand',
+      component: SelectedFoodStand,
+      meta: { requiresAuth: true,
               showHeader: true
       },
     },

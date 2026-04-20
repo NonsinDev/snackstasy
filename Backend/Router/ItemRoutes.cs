@@ -67,7 +67,7 @@ namespace Backend.Router
                 }
             });
 
-            // Create new item (Manager/Admin only)
+            // Create new item
             group.MapPost("/items/create", async (CreateItemRequest req) =>
             {
                 try
@@ -123,15 +123,15 @@ namespace Backend.Router
                 }
             });
 
-            // Update item (Manager/Admin only)
+            // Update item
             group.MapPut("/items/{item_id}", async (int item_id, UpdateItemRequest req) =>
             {
                 try
                 {
                     using var conn = new MySqlConnection(conn_str);
 
-                    var updates = new List<string>();
-                    var parameters = new DynamicParameters();
+                    List<string> updates = new List<string>();
+                    DynamicParameters parameters = new DynamicParameters();
                     parameters.Add("id", item_id);
 
                     if (!string.IsNullOrEmpty(req.name))

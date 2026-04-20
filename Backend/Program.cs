@@ -5,6 +5,8 @@ using Backend.Router;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddCors();
 
+string URL = "http://localhost:5002";
+
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -22,9 +24,11 @@ builder.Services.AddSession(options =>
 //   options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
 });
 
-var app = builder.Build();
+WebApplication app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI();
+
+Console.WriteLine($"✅ Swagger UI available at {URL}/swagger");
 
 string db_host = Environment.GetEnvironmentVariable("DB_HOST") ?? "localhost";
 string db_port = Environment.GetEnvironmentVariable("DB_PORT") ?? "3306";
@@ -51,10 +55,12 @@ catch (Exception ex)
 await WaitForDatabaseAsync(conn_str);
 
 // **Init SQL ausführen**
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
 string backendDir = Directory.GetParent(AppContext.BaseDirectory)   // net8.0
                              .Parent  // Debug
                              .Parent  // bin
                              .FullName; // jetzt im Backend-Ordner
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
 
 string sqlFilePath = Path.Combine(backendDir, "..", "mysql-init", "init.sql");
 await ExecuteSqlFileAsync(conn_str, sqlFilePath);
@@ -79,8 +85,7 @@ api_v1.MapBalanceRoutes(conn_str);
 api_v1.MapStandRoutes(conn_str);
 api_v1.MapItemRoutes(conn_str);
 
-//app.Run();
-app.Run("http://localhost:5002");
+app.Run(URL);
 
 async Task WaitForDatabaseAsync(string conn_str)
 {
@@ -91,7 +96,7 @@ async Task WaitForDatabaseAsync(string conn_str)
     {
         try
         {
-            using var conn = new MySqlConnection(conn_str);
+            using MySqlConnection conn = new MySqlConnection(conn_str);
             await conn.OpenAsync();
             conn.Close();
             Console.WriteLine("Database is ready!");
@@ -108,9 +113,7 @@ async Task WaitForDatabaseAsync(string conn_str)
     throw new Exception("Database failed to become available after 30 retries.");
 }
 
-// --------------------
 // SQL-Datei ausführen
-// --------------------
 async Task ExecuteSqlFileAsync(string conn_str, string filePath)
 {
     if (!File.Exists(filePath))
@@ -121,11 +124,11 @@ async Task ExecuteSqlFileAsync(string conn_str, string filePath)
 
     string sql = await File.ReadAllTextAsync(filePath);
 
-    using var conn = new MySqlConnection(conn_str);
+    using MySqlConnection conn = new MySqlConnection(conn_str);
     await conn.OpenAsync();
 
     // SQL-Datei in einzelne Statements aufsplitten und ausführen
-    foreach (var statement in sql.Split(";", StringSplitOptions.RemoveEmptyEntries))
+    foreach (string statement in sql.Split(";", StringSplitOptions.RemoveEmptyEntries))
     {
         if (!string.IsNullOrWhiteSpace(statement))
         {

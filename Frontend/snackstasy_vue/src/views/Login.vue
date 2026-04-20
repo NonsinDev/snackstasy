@@ -6,7 +6,7 @@ import { QrcodeStream } from 'vue-qrcode-reader'
 import { type DetectedBarcode } from 'barcode-detector/pure'
 import InputText from 'primevue/inputtext'
 import { Login } from '@/services/Login'
-import { initAuth } from "@/services/Authentification";
+import { initAuth } from '@/services/Authentification'
 
 const username = ref('')
 const ticket_id = ref('')
@@ -15,24 +15,24 @@ const error = ref('')
 const showScanner = ref(false)
 const isLoggingIn = ref(false)
 const loginSuccess = ref(false)
-
-
+const eyeOpenAmount = ref(1)
+const eyeLeftPos = ref({ x: 0, y: 0 })
+const eyeRightPos = ref({ x: 0, y: 0 })
 
 async function handleLogin() {
   try {
-    const result = await Login({ username: username.value, ticket_id: ticket_id.value });
+    const result = await Login({ username: username.value, ticket_id: ticket_id.value })
 
-    // ⚡ Session im Frontend direkt aktualisieren
-    await initAuth();
+    await initAuth()
 
     if (result.logged_in) {
-      router.push(`/`);
+      router.push(`/`)
     } else {
-      alert("Falscher Benutzername oder Passwort");
+      alert('Falscher Benutzername oder Passwort')
     }
   } catch (err) {
-    alert("Fehler beim Login");
-    console.error(err);
+    alert('Fehler beim Login')
+    console.error(err)
   }
 }
 
@@ -69,23 +69,65 @@ function onDetect(detectedCodes: DetectedBarcode[]) {
   }
 }
 
-// Orbs animieren
-onMounted(() => {
-  const orbs = document.querySelectorAll('.orb')
-  orbs.forEach((orb, i) => {
-    const el = orb as HTMLElement
-    const speed = 6 + i * 2.5
-    const xAmp = 30 + i * 15
-    const yAmp = 20 + i * 10
-    let t = i * 1.3
+function updateEyePosition(event: MouseEvent) {
+  const btn = document.querySelector('.login-btn') as HTMLElement
+  if (!btn) return
 
-    const animate = () => {
-      t += 0.008
-      el.style.transform = `translate(${Math.sin(t * 0.7) * xAmp}px, ${Math.cos(t * 0.5) * yAmp}px)`
-      requestAnimationFrame(animate)
-    }
-    animate()
-  })
+  const rect = btn.getBoundingClientRect()
+  const centerX = rect.left + rect.width / 2
+  const centerY = rect.top + rect.height / 2
+
+  const angle = Math.atan2(event.clientY - centerY, event.clientX - centerX)
+  const distance = 15
+
+  eyeLeftPos.value = {
+    x: Math.cos(angle) * distance,
+    y: Math.sin(angle) * distance,
+  }
+  eyeRightPos.value = {
+    x: Math.cos(angle) * distance,
+    y: Math.sin(angle) * distance,
+  }
+}
+
+async function handleLoginWithBlink() {
+  await animateEyesClosed()
+  await handleLogin()
+  await animateEyesOpen()
+}
+
+async function animateEyesClosed() {
+  const steps = 10
+  const duration = 300
+  const stepDuration = duration / steps
+
+  for (let i = 0; i <= steps; i++) {
+    eyeOpenAmount.value = 1 - i / steps
+    await new Promise((resolve) => setTimeout(resolve, stepDuration))
+  }
+}
+
+async function animateEyesOpen() {
+  const steps = 10
+  const duration = 300
+  const stepDuration = duration / steps
+
+  for (let i = 0; i <= steps; i++) {
+    eyeOpenAmount.value = i / steps
+    await new Promise((resolve) => setTimeout(resolve, stepDuration))
+  }
+}
+
+function closeEyes() {
+  animateEyesClosed()
+}
+
+function openEyes() {
+  animateEyesOpen()
+}
+
+onMounted(() => {
+  document.addEventListener('mousemove', updateEyePosition)
 })
 </script>
 
@@ -130,6 +172,8 @@ onMounted(() => {
             class="field__input"
             placeholder="Ticket ID"
             @keyup.enter="handleLogin"
+            @focus="closeEyes"
+            @blur="openEyes"
           />
           <button
             class="qr-btn"
@@ -175,305 +219,174 @@ onMounted(() => {
       <!-- Login Button -->
       <button
         class="login-btn"
-        @click="handleLogin"
+        @click="handleLoginWithBlink"
         :disabled="isLoggingIn || loginSuccess"
         :class="{ 'login-btn--loading': isLoggingIn, 'login-btn--success': loginSuccess }"
       >
-        <div class="logo-ring">
-          <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" class="logo-icon">
-            <circle cx="24" cy="24" r="20" stroke="url(#g1)" stroke-width="2" />
-            <path
-              d="M16 24h16M24 16l8 8-8 8"
-              stroke="url(#g2)"
-              stroke-width="2.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-            <defs>
-              <linearGradient id="g1" x1="4" y1="4" x2="44" y2="44">
-                <stop stop-color="#818cf8" />
-                <stop offset="1" stop-color="#a78bfa" />
-              </linearGradient>
-              <linearGradient id="g2" x1="16" y1="16" x2="32" y2="32">
-                <stop stop-color="#c4b5fd" />
-                <stop offset="1" stop-color="#818cf8" />
-              </linearGradient>
-            </defs>
-          </svg>
+        <div class="eyes-container">
+          <div class="eye eye-left">
+            <div class="eye-lid" :style="{ height: `${(1 - eyeOpenAmount) * 100}%` }"></div>
+            <div
+              class="pupil"
+              :style="{ transform: `translate(${eyeLeftPos.x}px, ${eyeLeftPos.y}px)` }"
+            ></div>
+          </div>
+          <div class="eye eye-right">
+            <div class="eye-lid" :style="{ height: `${(1 - eyeOpenAmount) * 100}%` }"></div>
+            <div
+              class="pupil"
+              :style="{ transform: `translate(${eyeRightPos.x}px, ${eyeRightPos.y}px)` }"
+            ></div>
+          </div>
         </div>
       </button>
-
-      <!-- Footer -->
-      <p class="card__footer">Sicherer Zugang · Verschlüsselt</p>
     </div>
   </div>
 </template>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
-
 * {
   box-sizing: border-box;
 }
 
-/* ── Scene ── */
 .scene {
-  max-height: 100vh;
   width: 100%;
+  min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #0a0a14;
-  overflow: hidden;
-  position: relative;
-  font-family: 'DM Sans', sans-serif;
+  background: #f5f5f5;
   padding: 1rem;
-  transition: background 0.8s ease;
 }
 
 .scene--success {
-  background: #07120f;
+  background: #f5f5f5;
 }
 
-/* ── Orbs ── */
-.orb {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(80px);
-  opacity: 0.35;
-  pointer-events: none;
-}
-.orb-1 {
-  width: 500px;
-  height: 500px;
-  background: #4f46e5;
-  top: -150px;
-  left: -100px;
-}
-.orb-2 {
-  width: 400px;
-  height: 400px;
-  background: #7c3aed;
-  bottom: -100px;
-  right: -80px;
-  opacity: 0.3;
-}
-.orb-3 {
-  width: 300px;
-  height: 300px;
-  background: #0ea5e9;
-  top: 40%;
-  left: 60%;
-  opacity: 0.2;
-}
-.orb-4 {
-  width: 250px;
-  height: 250px;
-  background: #a855f7;
-  bottom: 20%;
-  left: 10%;
-  opacity: 0.2;
-}
-
-/* ── Grid ── */
+.orb,
 .grid-overlay {
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
-  background-size: 48px 48px;
-  pointer-events: none;
+  display: none;
 }
 
-/* ── Card ── */
 .card {
-  position: relative;
-  z-index: 10;
   width: 100%;
-  max-width: 500px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 24px;
-  margin: 900rem;
-  padding: 2.5rem 2rem;
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  box-shadow:
-    0 0 0 1px rgba(139, 92, 246, 0.15),
-    0 32px 80px rgba(0, 0, 0, 0.6),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  animation: cardIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  transition: box-shadow 0.5s ease;
+  max-width: 380px;
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 }
 
 .card--success {
-  box-shadow:
-    0 0 0 1px rgba(52, 211, 153, 0.3),
-    0 32px 80px rgba(0, 0, 0, 0.6),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  background: white;
 }
 
-@keyframes cardIn {
-  from {
-    opacity: 0;
-    transform: translateY(32px) scale(0.97);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-/* ── Header ── */
 .card__header {
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
-.logo-ring {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 70px;
-  height: 70px;
-  border-radius: 50%;
-  background: rgba(129, 140, 248, 0.1);
-  border: 1px solid rgba(129, 140, 248, 0.25);
-  animation: pulse-ring 3s ease-in-out infinite;
-}
-
-@keyframes pulse-ring {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 rgba(129, 140, 248, 0.2);
-  }
-  50% {
-    box-shadow: 0 0 0 12px rgba(129, 140, 248, 0);
-  }
-}
-
+.logo-ring,
 .logo-icon {
-  width: 32px;
-  height: 32px;
+  display: none;
 }
 
 .card__title {
-  font-family: 'Syne', sans-serif;
-  font-size: 1.75rem;
-  font-weight: 800;
-  color: #f1f5f9;
-  margin: 0 0 0.25rem;
-  letter-spacing: -0.03em;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
 }
 
 .card__subtitle {
   font-size: 0.8rem;
-  color: rgba(148, 163, 184, 0.7);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  margin: 0;
+  color: #999;
+  margin: 0.5rem 0 0;
 }
 
-/* ── Fields ── */
 .fields {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 1rem;
+  margin: 1.5rem 0;
 }
 
 .field {
   display: flex;
   align-items: center;
-  gap: 0;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  gap: 0.75rem;
+  background: #f9f9f9;
   border-radius: 12px;
-  padding: 0 0.75rem;
-  transition:
-    border-color 0.2s,
-    box-shadow 0.2s;
+  padding: 0.75rem 1rem;
+  border: 1px solid #e5e5e5;
 }
 
 .field:focus-within {
-  border-color: rgba(139, 92, 246, 0.5);
-  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+  border-color: #3366ff;
+  background: #f0f4ff;
 }
 
 .field__icon {
-  color: rgba(148, 163, 184, 0.5);
-  font-size: 0.85rem;
+  color: #999;
+  font-size: 0.9rem;
   flex-shrink: 0;
-  width: 24px;
 }
 
 .field__input {
   flex: 1;
   background: transparent !important;
   border: none !important;
-  box-shadow: none !important;
   outline: none !important;
-  color: #f1f5f9 !important;
-  font-family: 'DM Sans', sans-serif !important;
+  color: #333 !important;
   font-size: 0.95rem !important;
-  padding: 0.85rem 0.5rem !important;
-  width: 100%;
+  padding: 0 !important;
+  box-shadow: none !important;
 }
 
 .field__input::placeholder {
-  color: rgba(148, 163, 184, 0.4) !important;
+  color: #ccc !important;
 }
 
-/* ── QR Button ── */
 .qr-btn {
   flex-shrink: 0;
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(148, 163, 184, 0.7);
+  border: none;
+  background: white;
+  color: #999;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.8rem;
-  transition: all 0.2s ease;
+  font-size: 0.9rem;
 }
 
-.qr-btn:hover {
-  background: rgba(139, 92, 246, 0.2);
-  border-color: rgba(139, 92, 246, 0.4);
-  color: #a78bfa;
+.qr-btn:active {
+  background: #f0f0f0;
 }
 
 .qr-btn--active {
-  background: rgba(239, 68, 68, 0.15);
-  border-color: rgba(239, 68, 68, 0.3);
-  color: #f87171;
+  background: #e8f0ff;
+  color: #3366ff;
 }
 
-/* ── Scanner ── */
-.scanner-slide-enter-active {
-  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-}
+.scanner-slide-enter-active,
 .scanner-slide-leave-active {
-  transition: all 0.25s ease;
+  transition: opacity 0.15s;
 }
-.scanner-slide-enter-from {
-  opacity: 0;
-  transform: translateY(-10px) scale(0.98);
-}
+
+.scanner-slide-enter-from,
 .scanner-slide-leave-to {
   opacity: 0;
-  transform: translateY(-6px) scale(0.98);
 }
 
 .scanner-box {
   border-radius: 12px;
   overflow: hidden;
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  background: #f9f9f9;
+  border: 1px solid #e5e5e5;
+  margin-top: 0.75rem;
 }
 
 .scanner-hint {
@@ -481,28 +394,16 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 0.6rem;
-  font-size: 0.78rem;
-  color: #a78bfa;
-  letter-spacing: 0.05em;
+  padding: 0.75rem;
+  font-size: 0.8rem;
+  color: #666;
 }
 
 .scanner-dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #a78bfa;
-  animation: blink 1.2s ease-in-out infinite;
-}
-
-@keyframes blink {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.2;
-  }
+  background: #999;
 }
 
 .scanner-frame {
@@ -516,175 +417,150 @@ onMounted(() => {
 
 .corner {
   position: absolute;
-  width: 18px;
-  height: 18px;
-  border-color: #a78bfa;
+  width: 14px;
+  height: 14px;
+  border-color: #3366ff;
   border-style: solid;
 }
+
 .corner--tl {
   top: 6px;
   left: 6px;
   border-width: 2px 0 0 2px;
 }
+
 .corner--tr {
   top: 6px;
   right: 6px;
   border-width: 2px 2px 0 0;
 }
+
 .corner--bl {
   bottom: 6px;
   left: 6px;
   border-width: 0 0 2px 2px;
 }
+
 .corner--br {
   bottom: 6px;
   right: 6px;
   border-width: 0 2px 2px 0;
 }
 
-/* ── Error ── */
 .fade-enter-active,
 .fade-leave-active {
-  transition: all 0.25s ease;
+  transition: opacity 0.15s;
 }
+
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
-  transform: translateY(-4px);
 }
 
 .error-msg {
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.25);
+  background: #ffe8e8;
+  border: 1px solid #ffb3b3;
   border-radius: 10px;
-  padding: 0.65rem 0.9rem;
-  color: #fca5a5;
-  font-size: 0.83rem;
+  padding: 0.75rem 1rem;
+  color: #d32f2f;
+  font-size: 0.85rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
-/* ── Login Button ── */
 .login-btn {
-  margin-top: 1.25rem;
+  margin-top: 1.5rem;
   width: 100%;
-
   border: none;
   border-radius: 12px;
-  background: linear-gradient(135deg, #6d28d9, #4f46e5);
+  background: #3366ff;
   color: white;
-  font-family: 'Syne', sans-serif;
   font-size: 0.95rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
+  font-weight: 600;
   cursor: pointer;
-  position: relative;
-  overflow: hidden;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 24px rgba(109, 40, 217, 0.4);
+  padding: 0.85rem;
+  transition: background 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.login-btn::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), transparent);
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-
-.login-btn:hover:not(:disabled)::before {
-  opacity: 1;
-}
 .login-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 32px rgba(109, 40, 217, 0.55);
+  background: #254fbf;
 }
 
 .login-btn:active:not(:disabled) {
-  transform: translateY(0);
+  background: #1a3a99;
 }
 
 .login-btn:disabled {
   cursor: not-allowed;
-}
-
-.login-btn__content {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
+  background: #ccc;
+  color: #999;
 }
 
 .login-btn--loading {
-  background: linear-gradient(135deg, #5b21b6, #4338ca);
+  background: #999;
 }
 
 .login-btn--success {
-  background: linear-gradient(135deg, #059669, #0d9488) !important;
-  box-shadow: 0 4px 24px rgba(5, 150, 105, 0.4) !important;
+  background: #22a55a !important;
 }
 
-/* ── Spinner ── */
-.spinner {
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top-color: white;
+/* Eyes */
+.eyes-container {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: center;
+}
+
+.eye {
+  width: 32px;
+  height: 32px;
+  background: white;
   border-radius: 50%;
-  animation: spin 0.7s linear infinite;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+.pupil {
+  width: 12px;
+  height: 12px;
+  background: #3366ff;
+  border-radius: 50%;
+  transition: transform 0.05s ease-out;
 }
 
-/* ── Footer ── */
+.eye-lid {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: #172e70;
+  z-index: 10;
+  transition: height 0.05s ease-out;
+}
+
 .card__footer {
   text-align: center;
-  font-size: 0.72rem;
-  color: rgba(148, 163, 184, 0.3);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  margin: 1.25rem 0 0;
+  font-size: 0.75rem;
+  color: #999;
+  margin-top: 1rem;
 }
 
-/* ── Mobile ── */
 @media (max-width: 480px) {
   .card {
-    padding: 2rem 1.5rem;
-    border-radius: 20px;
-    margin: 0;
+    padding: 1.5rem;
+    border-radius: 14px;
   }
 
   .card__title {
-    font-size: 1.5rem;
-  }
-
-  .logo-ring {
-    width: 56px;
-    height: 56px;
-  }
-  .logo-icon {
-    width: 26px;
-    height: 26px;
-  }
-  .scene {
-    min-height: 100%;
-    height: 100vh;
-  }
-}
-
-@media (max-width: 360px) {
-  .card {
-    padding: 1.75rem 1.25rem;
-  }
-  .card__title {
-    font-size: 1.35rem;
+    font-size: 1.3rem;
   }
 }
 </style>

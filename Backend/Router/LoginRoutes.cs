@@ -32,11 +32,11 @@ namespace Backend.Router
                     if (string.IsNullOrWhiteSpace(req.username))
                         return Results.BadRequest(new { error = "Username is required." });
 
-                    using var conn = new MySqlConnection(conn_str);
+                    using MySqlConnection conn = new MySqlConnection(conn_str);
                     
                     User? user = await conn.QueryFirstOrDefaultAsync<User>(
                         "SELECT user_id, first_name, last_name, balance, ticket_id FROM users WHERE ticket_id = @ticket_id",
-                        new { ticket_id = req.ticket_id }
+                        new { req.ticket_id }
                     );
 
                     if (user == null)
