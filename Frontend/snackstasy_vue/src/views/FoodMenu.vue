@@ -5,7 +5,13 @@ import InputText from 'primevue/inputtext'
 import { GetAllStands, ItemsByStandId } from '@/services/Stands'
 import { useFoodStore } from '@/stores/foodStore'
 import type { AllStands } from '@/model/Items'
-import img from '@/assets/corndog.jpg'
+import img1 from '@/assets/Burger.png'
+import img2 from '@/assets/pizza.jpg'
+import img3 from '@/assets/wok.jpg'
+import img4 from '@/assets/corndog.jpg'
+import img5 from '@/assets/sushi.jpg'
+import img6 from '@/assets/tgaco.jpg'
+import img7 from '@/assets/KeinBild.jpg'
 
 const router = useRouter()
 const foodStore = useFoodStore()
@@ -51,6 +57,25 @@ const selectStand = async (stand: AllStands) => {
     loading.value = false
   }
 }
+
+const getImageByStandId = (id: number) => {
+  switch (id) {
+    case 1:
+      return img1
+    case 2:
+      return img2
+    case 3:
+      return img3
+    case 4:
+      return img4
+    case 5:
+      return img5
+    case 6:
+      return img6
+    default:
+      return img7 // fallback
+  }
+}
 </script>
 
 <template>
@@ -72,7 +97,7 @@ const selectStand = async (stand: AllStands) => {
       >
         <!-- 🖼️ Bild -->
         <div class="image-wrapper">
-          <img :src="img" />
+          <img :src="getImageByStandId(stand.stand_id)" />
           <div class="status">{{ stand.name }}</div>
         </div>
 
