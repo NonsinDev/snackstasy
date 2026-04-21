@@ -2,29 +2,22 @@
 import { ref, computed } from 'vue'
 import InputNumber from 'primevue/inputnumber'
 import Button from 'primevue/button'
-import type { User_Data } from '@/model/UserData';
-import { AddBalance } from '@/services/Header';
+import type { User_Data } from '@/model/UserData'
+import { AddBalance } from '@/services/Header'
 
 const props = defineProps<{
-  currentUser: User_Data 
+  currentUser: User_Data
 }>()
 
 const emit = defineEmits<{
   updateBalance: [newBalance: number]
   closeDialog: []
-  refreshUser: []
 }>()
 
+const UserBalance = props.currentUser.balance
 const amounts = [5, 10, 20, 50]
 const customAmount = ref<number | null>(null)
 const isLoading = ref(false)
-
-const balanceAfterTopUp = computed(() => {
-  if (customAmount.value) {
-    return props.currentUser?.balance + customAmount.value
-  }
-  return props.currentUser.balance
-})
 
 const topUpWithAmount = async (amount: number) => {
   if (!props.currentUser) return
@@ -33,9 +26,8 @@ const topUpWithAmount = async (amount: number) => {
   try {
     // echte API aufrufen
     await AddBalance(props.currentUser.user_id, amount)
-    emit('refreshUser');
   } catch (error) {
-    console.error("Fehler beim Aufladen:", error)
+    console.error('Fehler beim Aufladen:', error)
     // hier könntest du noch eine Fehlermeldung anzeigen
   } finally {
     isLoading.value = false
@@ -48,16 +40,14 @@ const topUpWithCustomAmount = async () => {
   isLoading.value = true
   try {
     await AddBalance(props.currentUser.user_id, customAmount.value)
-    emit('refreshUser');
     customAmount.value = null
     isLoading.value = false
   } catch (error) {
-    console.error("Fehler beim Aufladen:", error)
+    console.error('Fehler beim Aufladen:', error)
   } finally {
     isLoading.value = false
   }
 }
-
 </script>
 
 <template>
@@ -66,8 +56,8 @@ const topUpWithCustomAmount = async () => {
     <div class="balance-section">
       <h2 class="section-title">Aktueller Kontostand</h2>
       <div class="balance-card">
+        <span class="balance-amount">{{ UserBalance.toFixed(2) }}</span>
         <span class="currency-symbol">€</span>
-        <span class="balance-amount">{{ props.currentUser.balance.toFixed(2) }}</span>
       </div>
     </div>
 
@@ -119,7 +109,7 @@ const topUpWithCustomAmount = async () => {
       <div class="preview-card">
         <div class="preview-item">
           <span class="preview-label">Aktueller Saldo:</span>
-          <span class="preview-value current">{{ props.currentUser.balance.toFixed(2) }}€</span>
+          <span class="preview-value current">{{ UserBalance.toFixed(2) }}€</span>
         </div>
         <div class="preview-plus">+</div>
         <div class="preview-item">
@@ -129,7 +119,7 @@ const topUpWithCustomAmount = async () => {
         <div class="preview-equal">=</div>
         <div class="preview-item total">
           <span class="preview-label">Neuer Saldo:</span>
-          <span class="preview-value total">{{ balanceAfterTopUp.toFixed(2) }}€</span>
+          <span class="preview-value total">{{ UserBalance.toFixed(2) }}€</span>
         </div>
       </div>
     </div>

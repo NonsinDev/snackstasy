@@ -274,7 +274,7 @@ const getImageByStandId = (id: number) => {
   right: 0;
   padding: 16px;
   background: linear-gradient(to top, rgba(0, 0, 0, 0.6), transparent);
-  color: white;
+  color: rgb(255, 255, 255);
 }
 
 .overlay h1 {
@@ -291,7 +291,7 @@ const getImageByStandId = (id: number) => {
 .food-items-section {
   flex: 1;
   overflow-y: auto;
-  padding: 20px;
+  padding: 15px;
 }
 
 .items-grid {
@@ -302,9 +302,9 @@ const getImageByStandId = (id: number) => {
 
 /* Card */
 .food-item {
-  background: white;
+  background: rgb(39, 38, 38);
   border-radius: 12px;
-  padding: 16px;
+  padding: 18px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: 0.3s;
 }
@@ -316,25 +316,29 @@ const getImageByStandId = (id: number) => {
 .item-header {
   display: flex;
   justify-content: space-between;
+  color: #ffffff;
+  margin: 5px;
 }
 
 .price {
   font-weight: bold;
-  color: #059669;
+  color: #ffd700;
 }
 
 .description {
   font-size: 13px;
-  color: #6b7280;
+  color: #ffffff;
+  margin: 5px;
 }
 
 .add-btn {
   width: 100%;
   padding: 10px;
-  background: #3b82f6;
-  color: white;
-  border: none;
-  border-radius: 8px;
+  background: #ffd700;
+  color: rgb(22, 22, 22);
+  transition: all 0.25s ease;
+  border-radius: 6px;
+  /*  border: 2px solid #ffffff; */
 }
 
 .add-btn:hover {

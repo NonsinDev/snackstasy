@@ -84,7 +84,6 @@ async function loadSessionData() {
         :currentUser="currentUser"
         @update-balance="handleBalanceUpdate"
         @close-dialog="visibleBalance = false"
-        @refresh-user="loadUserData"
       />
       <template #footer>
         <div class="dialog-footer">

@@ -107,7 +107,7 @@ const getImageByStandId = (id: number) => {
             <h2>{{ stand.name }}</h2>
           </div>
           <div class="bottom">
-            <span class="open-text green">Stand ID: {{ stand.stand_id }}</span>
+            <span class="open-text green">Standort in Block: {{ stand.stand_id }}</span>
           </div>
         </div>
       </div>
@@ -143,12 +143,24 @@ const getImageByStandId = (id: number) => {
 /* 📄 Card */
 .list-card {
   display: flex;
-  background: white;
+  background: rgb(39, 38, 38);
   border-radius: 20px;
   overflow: hidden;
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #ffd700;
+}
+
+.open-text.green {
+  color: #ffd700;
+  font-weight: bold;
 }
 
 .list-card:hover {
@@ -205,12 +217,6 @@ const getImageByStandId = (id: number) => {
   justify-content: space-between;
 }
 
-.top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
 .top h2 {
   margin: 0;
   font-size: 20px;
@@ -235,11 +241,6 @@ const getImageByStandId = (id: number) => {
 .bottom {
   display: flex;
   justify-content: flex-end;
-}
-
-.open-text.green {
-  color: #22c55e;
-  font-weight: bold;
 }
 
 .loading-message,
