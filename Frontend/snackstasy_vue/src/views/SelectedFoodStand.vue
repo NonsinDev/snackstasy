@@ -30,6 +30,16 @@ const itemsPerLoad = 20
 const currentPage = ref(0)
 const hasMore = ref(true)
 
+const cart = ref<ItemsByStand[]>([])
+const totalPrice = ref(0)
+
+const addToCart = (item: ItemsByStand) => {
+  console.log('jetzt wird gepusht')
+  cart.value.push(item)
+  console.log('Item: ', item)
+  totalPrice.value += item.price
+}
+
 // 🖼️ Stand Infos (kannst du später aus API holen)
 const standName = ref('Food Stand 🍔')
 const standDescription = ref('Leckeres Essen frisch zubereitet')
@@ -103,6 +113,10 @@ const getImageByStandId = (id: number) => {
       return img7 // fallback
   }
 }
+
+const goToCheckout = () => {
+  router.push(`/checkout`) // später implementieren
+}
 </script>
 
 <template>
@@ -134,6 +148,16 @@ const getImageByStandId = (id: number) => {
         </div>
       </div>
 
+      <div v-if="cart.length > 0" class="cart-bar">
+        <div class="cart-info">
+          <span class="cart-icon">🛒</span>
+          <span>{{ cart.length }} Artikel</span>
+          <span class="price">{{ totalPrice.toFixed(2) }}€</span>
+        </div>
+
+        <button class="checkout-btn" @click="goToCheckout">Kaufen</button>
+      </div>
+
       <!-- 🍽️ Items -->
       <div ref="scrollContainer" class="food-items-section">
         <div class="items-grid">
@@ -143,7 +167,7 @@ const getImageByStandId = (id: number) => {
               <span class="price">{{ item.price.toFixed(2) }}€</span>
             </div>
             <p class="description">Bestand: {{ item.stock }}</p>
-            <button class="add-btn">In den Warenkorb</button>
+            <button class="add-btn" @click="addToCart(item)">In den Warenkorb</button>
           </div>
         </div>
 
@@ -161,6 +185,64 @@ const getImageByStandId = (id: number) => {
 </template>
 
 <style scoped>
+.cart-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+
+  height: 15vh;
+  min-height: 70px;
+
+  background: #0f0f0f;
+  border-top: 2px solid #ffd800;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 0 20px;
+  z-index: 1000;
+
+  box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.6);
+}
+
+.cart-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+
+  color: white;
+  font-weight: 600;
+}
+
+.cart-icon {
+  font-size: 22px;
+}
+
+.cart-info .price {
+  color: #ffd800;
+  font-weight: bold;
+}
+
+.checkout-btn {
+  background: linear-gradient(135deg, #ffd800, #7e416f, #ffd800);
+  color: black;
+  border: none;
+
+  padding: 12px 20px;
+  border-radius: 12px;
+
+  font-weight: bold;
+  font-size: 14px;
+
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.checkout-btn:hover {
+  transform: scale(1.05);
+}
 .load-more-wrapper {
   display: flex;
   justify-content: center;
@@ -342,7 +424,7 @@ const getImageByStandId = (id: number) => {
 }
 
 .add-btn:hover {
-  background: #2563eb;
+  background: #8a7502;
 }
 
 /* States */

@@ -3,6 +3,8 @@ import { useAuth, initAuth } from "../services/Authentification";
 import Login from '@/views/Login.vue'
 import FoodMenu from '../views/FoodMenu.vue'
 import SelectedFoodStand from '../views/SelectedFoodStand.vue'
+import Checkout from '@/views/Checkout.vue';
+
 
 const router = createRouter({
   history: createWebHashHistory(),
@@ -18,8 +20,7 @@ const router = createRouter({
       name: 'home',
       component: FoodMenu,
       meta: { requiresAuth: true,  
-              showHeader: true
-      },
+              showHeader: true },
     },
     {
       path: '/stand/:standId',
@@ -29,24 +30,32 @@ const router = createRouter({
               showHeader: true
       },
     },
-
+    {
+      path: '/checkout',
+      name: 'Checkout',
+      component: Checkout,
+      meta: {
+        requiresAuth: true,
+        showHeader: true
+      },
+    }
   ],
 })
 
 
 // 🔒 Globaler Login-Schutz
-router.beforeEach(async (to, _from, next) => {
-  const { isAuthenticated, isLoading } = useAuth();
+router.beforeEach(async (to) => {
+  const { isAuthenticated, isLoading } = useAuth()
 
   if (isLoading.value) {
-    await initAuth(); // 👈 Session im Backend prüfen
+    await initAuth()
   }
 
   if (to.meta.requiresAuth && !isAuthenticated()) {
-    return next("/login");
-  } else {
-    next();
+    return "/login"
   }
+
+  return true
 });
 
 export default router

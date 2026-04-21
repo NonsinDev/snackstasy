@@ -5,7 +5,7 @@ import PrimeVue from 'primevue/config'
 import App from './App.vue'
 import router from './router'
 import Button from 'primevue/button'
-
+import { createPinia } from 'pinia'
 
 import 'primeicons/primeicons.css'                     // Icons
 
@@ -22,5 +22,6 @@ app.use(router)
 app.component('Button', Button)
 app.use(VueQrcodeReader)
 app.component('font-awesome-icon', FontAwesomeIcon)
+app.use(createPinia())
 
 app.mount('#app')
