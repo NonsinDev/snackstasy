@@ -2,7 +2,9 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ItemsByStandId } from '@/services/Stands'
-import type { ItemsByStand } from '@/model/Items'
+import { useCartStore } from '@/stores/PiniaStore'
+import { useFoodStore } from '@/stores/foodStore'
+import type { ItemsByStand, AllStands } from '@/model/Items'
 import img1 from '@/assets/Burger.png'
 import img2 from '@/assets/pizza.jpg'
 import img3 from '@/assets/wok.jpg'
@@ -12,9 +14,11 @@ import img6 from '@/assets/tgaco.jpg'
 import img7 from '@/assets/KeinBild.jpg'
 import FoodMenu from './FoodMenu.vue'
 
-// Router
+// Router & Store
 const route = useRoute()
 const router = useRouter()
+const cartStore = useCartStore()
+const foodStore = useFoodStore()
 
 // Daten
 const standId = Number(route.params.standId)
@@ -30,14 +34,10 @@ const itemsPerLoad = 20
 const currentPage = ref(0)
 const hasMore = ref(true)
 
-const cart = ref<ItemsByStand[]>([])
-const totalPrice = ref(0)
-
 const addToCart = (item: ItemsByStand) => {
   console.log('jetzt wird gepusht')
-  cart.value.push(item)
+  cartStore.addItem(item)
   console.log('Item: ', item)
-  totalPrice.value += item.price
 }
 
 // 🖼️ Stand Infos (kannst du später aus API holen)
@@ -83,8 +83,28 @@ onMounted(async () => {
       return
     }
 
-    const items = await ItemsByStandId(parseInt(standId))
-    foodItems.value = items
+    const parsedStandId = parseInt(standId)
+
+    // Prüfe ob Stand bereits in foodStore ist, sonst lade items
+    if (foodStore.currentStand?.stand_id === parsedStandId) {
+      foodItems.value = foodStore.currentItems
+      console.log('Stand aus Store geladen:', foodStore.currentStand)
+    } else {
+      console.log('Stand nicht im Store, lade Items...')
+      const items = await ItemsByStandId(parsedStandId)
+      foodItems.value = items
+
+      // Erstelle einen Stand-Objekt mit den verfügbaren Daten und speichere ihn
+      const stand: AllStands = {
+        stand_id: parsedStandId,
+        name: standName.value,
+        pickup_id: parsedStandId, // Fallback: nutze stand_id als pickup_id
+        tablet_id: 0,
+      }
+
+      console.log('Speichere Stand im foodStore:', stand)
+      foodStore.setStandAndItems(stand, items)
+    }
 
     loadMoreItems()
   } catch (err) {
@@ -148,11 +168,11 @@ const goToCheckout = () => {
         </div>
       </div>
 
-      <div v-if="cart.length > 0" class="cart-bar">
+      <div v-if="cartStore.itemCount > 0" class="cart-bar">
         <div class="cart-info">
           <span class="cart-icon">🛒</span>
-          <span>{{ cart.length }} Artikel</span>
-          <span class="price">{{ totalPrice.toFixed(2) }}€</span>
+          <span>{{ cartStore.itemCount }} Artikel</span>
+          <span class="price">{{ cartStore.totalPrice.toFixed(2) }}€</span>
         </div>
 
         <button class="checkout-btn" @click="goToCheckout">Kaufen</button>

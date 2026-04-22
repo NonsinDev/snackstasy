@@ -3,7 +3,8 @@ import { useAuth, initAuth } from "../services/Authentification";
 import Login from '@/views/Login.vue'
 import FoodMenu from '../views/FoodMenu.vue'
 import SelectedFoodStand from '../views/SelectedFoodStand.vue'
-import Checkout from '@/views/Checkout.vue';
+import Checkout from '@/views/Checkout.vue'
+import OrderStatus from '@/views/OrderStatus.vue'
 
 
 const router = createRouter({
@@ -34,6 +35,15 @@ const router = createRouter({
       path: '/checkout',
       name: 'Checkout',
       component: Checkout,
+      meta: {
+        requiresAuth: true,
+        showHeader: true
+      },
+    },
+    {
+      path: '/order-status',
+      name: 'order-status',
+      component: OrderStatus,
       meta: {
         requiresAuth: true,
         showHeader: true

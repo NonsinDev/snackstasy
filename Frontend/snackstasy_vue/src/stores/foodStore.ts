@@ -1,24 +1,21 @@
-import { ref } from 'vue'
+import { defineStore } from 'pinia'
 import type { AllStands, ItemsByStand } from '@/model/Items'
 
-export const useFoodStore = () => {
-  const currentStand = ref<AllStands | null>(null)
-  const currentItems = ref<ItemsByStand[]>([])
+export const useFoodStore = defineStore('food', {
+  state: () => ({
+    currentStand: null as AllStands | null,
+    currentItems: [] as ItemsByStand[],
+  }),
 
-  const setStandAndItems = (stand: AllStands, items: ItemsByStand[]) => {
-    currentStand.value = stand
-    currentItems.value = items
-  }
+  actions: {
+    setStandAndItems(stand: AllStands, items: ItemsByStand[]) {
+      this.currentStand = stand
+      this.currentItems = items
+    },
 
-  const clearStandData = () => {
-    currentStand.value = null
-    currentItems.value = []
-  }
-
-  return {
-    currentStand,
-    currentItems,
-    setStandAndItems,
-    clearStandData,
-  }
-}
+    clearStandData() {
+      this.currentStand = null
+      this.currentItems = []
+    },
+  },
+})
