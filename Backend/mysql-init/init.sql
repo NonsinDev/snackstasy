@@ -35,9 +35,30 @@ CREATE TABLE IF NOT EXISTS items (
   FOREIGN KEY (stand_id) REFERENCES stands(stand_id)
 );
 
--- Default admin user (password: admin123)
+CREATE TABLE IF NOT EXISTS orders (
+  order_id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  stand_id INT NOT NULL,
+  total_amount DECIMAL(10, 2) NOT NULL,
+  status ENUM('pending', 'preparing', 'ready', 'completed', 'cancelled') DEFAULT 'pending',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(user_id),
+  FOREIGN KEY (stand_id) REFERENCES stands(stand_id)
+);
+
+CREATE TABLE IF NOT EXISTS order_items (
+  order_item_id INT AUTO_INCREMENT PRIMARY KEY,
+  order_id INT NOT NULL,
+  item_id INT NOT NULL,
+  quantity INT NOT NULL DEFAULT 1,
+  price DECIMAL(10, 2) NOT NULL,
+  FOREIGN KEY (order_id) REFERENCES orders(order_id),
+  FOREIGN KEY (item_id) REFERENCES items(item_id)
+);
+
+-- Default admin user (password: admin123, hash will be fixed at startup)
  INSERT INTO employees (username, password_hash, first_name, last_name, role)
- VALUES ('admin', '$2a$11$rBNr6wCBWVH8vPQzMNpJuO3Xf4NzIK4vYHGqZxVmZPwXvxZjZjZjZ', 'Admin', 'User', 'admin')
+ VALUES ('admin', '$2a$11$PLACEHOLDER_WILL_BE_REPLACED_AT_STARTUP_BY_BACKEND', 'Admin', 'User', 'admin')
  ON DUPLICATE KEY UPDATE first_name = first_name;
 
 -- Users (nur einfügen, wenn ticket_id noch nicht existiert)
