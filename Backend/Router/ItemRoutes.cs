@@ -172,7 +172,7 @@ namespace Backend.Router
                 }
             });
 
-            // Delete item (Admin only)
+            // Delete item
             group.MapDelete("/items/{item_id}", async (int item_id) =>
             {
                 try
@@ -195,8 +195,8 @@ namespace Backend.Router
                 }
             });
 
-            // Update stock (Cashier/Manager/Admin)
-            group.MapPatch("/items/{item_id}/stock", async (int item_id, UpdateStockRequest req) =>
+            // Update stock
+            group.MapPatch("/items/{item_id}/stock", async (int item_id, int adjustment) =>
             {
                 try
                 {
@@ -209,7 +209,7 @@ namespace Backend.Router
                     if (item == null)
                         return Results.NotFound(new { error = "Item not found." });
 
-                    int new_stock = item.stock + req.adjustment;
+                    int new_stock = item.stock + adjustment;
                     if (new_stock < 0)
                         return Results.BadRequest(new { error = "Stock cannot be negative." });
 
@@ -222,7 +222,7 @@ namespace Backend.Router
                         item_id = item_id,
                         old_stock = item.stock,
                         new_stock = new_stock,
-                        adjustment = req.adjustment
+                        adjustment = adjustment
                     });
                 }
                 catch (Exception ex)
@@ -232,10 +232,5 @@ namespace Backend.Router
                 }
             });
         }
-    }
-
-    public class UpdateStockRequest
-    {
-        public required int adjustment { get; set; }
     }
 }

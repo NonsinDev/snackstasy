@@ -18,7 +18,7 @@ namespace Backend.Router
                     await conn.OpenAsync();
                     using var transaction = await conn.BeginTransactionAsync();
 
-                    // ✅ User direkt laden
+                    // User direkt laden
                     var user = await conn.QueryFirstOrDefaultAsync<User>(
                         "SELECT * FROM users WHERE user_id = @user_id",
                         new { req.user_id }, transaction);
@@ -53,14 +53,14 @@ namespace Backend.Router
                     if (user.balance < totalPrice)
                         return Results.BadRequest(new { error = "Insufficient balance." });
 
-                    // ✅ Order erstellen
+                    // Order erstellen
                     var orderId = await conn.QuerySingleAsync<int>(
                         @"INSERT INTO orders (user_id, stand_id, total_price, status)
                           VALUES (@user_id, @stand_id, @total_price, 'pending');
                           SELECT LAST_INSERT_ID();",
                         new { req.user_id, req.stand_id, total_price = totalPrice }, transaction);
 
-                    // ✅ Items speichern + Stock reduzieren
+                    // Items speichern + Stock reduzieren
                     foreach (var orderItem in req.items)
                     {
                         var dbItem = dbItems[orderItem.item_id];
@@ -83,7 +83,7 @@ namespace Backend.Router
                             transaction);
                     }
 
-                    // ✅ Balance abziehen
+                    // Balance abziehen
                     await conn.ExecuteAsync(
                         "UPDATE users SET balance = balance - @amount WHERE user_id = @user_id",
                         new { amount = totalPrice, req.user_id },
@@ -91,7 +91,7 @@ namespace Backend.Router
 
                     await transaction.CommitAsync();
 
-                    return Results.Created($"/orders/{orderId}", new
+                    return Results.Ok(new
                     {
                         order_id = orderId,
                         total_price = totalPrice
