@@ -41,7 +41,7 @@ const router = createRouter({
       },
     },
     {
-      path: '/order-status',
+      path: '/order-status/:order_id?',
       name: 'order-status',
       component: OrderStatus,
       meta: {

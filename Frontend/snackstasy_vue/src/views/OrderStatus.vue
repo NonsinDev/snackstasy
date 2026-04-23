@@ -1,40 +1,80 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useCartStore } from '@/stores/PiniaStore'
+import { OrderById } from '@/services/Orders'
+// @ts-ignore
 import QRCode from 'qrcode'
 
 const router = useRouter()
+const route = useRoute()
 const cartStore = useCartStore()
 
 const qrCodeDataUrl = ref<string>('')
 const autoStatusUpdate = ref(false)
+const orderFromDb = ref<any>(null)
+const isLoading = ref(true)
+
+const getOrderId = (): number | null => {
+  // Versuche order_id aus Route-Parametern zu bekommen
+  const routeOrderId = route.params.order_id
+  if (routeOrderId) {
+    return parseInt(routeOrderId as string)
+  }
+  // Fallback auf cartStore order_id
+  return cartStore.orderDetails?.order_id || null
+}
+
+const getOrderData = () => {
+  if (orderFromDb.value) {
+    return orderFromDb.value
+  }
+  return cartStore.orderDetails
+}
 
 onMounted(async () => {
-  if (!cartStore.orderDetails) {
+  const orderId = getOrderId()
+
+  if (orderId) {
+    // Lade Order von der DB
+    try {
+      console.log('Lade Order von DB mit ID:', orderId)
+      const dbResponse = await OrderById(orderId)
+      orderFromDb.value = dbResponse
+      console.log('Order von DB geladen:', orderFromDb.value)
+    } catch (err) {
+      console.error('Fehler beim Laden der Order:', err)
+    }
+  } else if (!cartStore.orderDetails) {
+    // Keine Order gefunden
     router.push('/')
     return
   }
 
+  isLoading.value = false
+
   // QR-Code mit item_ids generieren
-  const itemIds = cartStore.orderDetails.items.map((item) => item.item_id).join(',')
-  try {
-    qrCodeDataUrl.value = await QRCode.toDataURL(itemIds, {
-      errorCorrectionLevel: 'H',
-      type: 'image/png',
-      width: 200,
-      margin: 1,
-      color: {
-        dark: '#000000',
-        light: '#ffffff',
-      },
-    })
-  } catch (err) {
-    console.error('Fehler beim Generieren des QR-Codes:', err)
+  const orderData = getOrderData()
+  if (orderData) {
+    try {
+      const itemIds = orderData.items?.map((item: any) => item.item_id).join(',') || ''
+      qrCodeDataUrl.value = await QRCode.toDataURL(itemIds, {
+        errorCorrectionLevel: 'H',
+        type: 'image/png',
+        width: 200,
+        margin: 1,
+        color: {
+          dark: '#000000',
+          light: '#ffffff',
+        },
+      })
+    } catch (err) {
+      console.error('Fehler beim Generieren des QR-Codes:', err)
+    }
   }
 
   // Automatisch nach 3 Sekunden zu "ready" wechseln (Demo)
-  if (autoStatusUpdate.value) {
+  if (autoStatusUpdate.value && cartStore.orderDetails) {
     setTimeout(() => {
       cartStore.updateOrderStatus('ready')
     }, 3000)
@@ -42,20 +82,39 @@ onMounted(async () => {
 })
 
 const statusClass = computed(() => {
-  if (!cartStore.orderDetails) return ''
-  const status = cartStore.orderDetails.orderStatus
+  const orderData = getOrderData()
+  if (!orderData) return ''
+  const status = orderData.orderStatus || orderData.order?.status || orderData.status
   return `status-${status}`
 })
 
 const statusText = computed(() => {
-  if (!cartStore.orderDetails) return ''
+  const orderData = getOrderData()
+  if (!orderData) return ''
+  const status = orderData.orderStatus || orderData.order?.status || orderData.status
   const statuses: Record<string, string> = {
+    pending: 'Ausstehend',
     preparing: 'In Zubereitung',
     ready: 'Bereit zur Abholung',
     completed: 'Abgeholt',
+    cancelled: 'Storniert',
   }
-  return statuses[cartStore.orderDetails.orderStatus] || 'Unbekannt'
+  return statuses[status] || 'Unbekannt'
 })
+
+const getItems = () => {
+  if (orderFromDb.value?.items) {
+    return orderFromDb.value.items
+  }
+  return cartStore.orderDetails?.items || []
+}
+
+const getTotalPrice = () => {
+  if (orderFromDb.value?.order?.total_price) {
+    return orderFromDb.value.order.total_price
+  }
+  return cartStore.orderDetails?.totalPrice || 0
+}
 
 const goBack = () => {
   router.push('/')
@@ -63,15 +122,17 @@ const goBack = () => {
 }
 
 const copyPickupId = () => {
-  if (cartStore.orderDetails) {
-    navigator.clipboard.writeText(cartStore.orderDetails.pickupId.toString())
+  const orderData = getOrderData()
+  if (orderData) {
+    const pickupId = orderData.pickupId || orderData.pickup_id || 'N/A'
+    navigator.clipboard.writeText(pickupId.toString())
     alert('Abhol-ID kopiert!')
   }
 }
 </script>
 
 <template>
-  <div v-if="cartStore.orderDetails" class="order-status-container">
+  <div v-if="!isLoading" class="order-status-container">
     <!-- Header -->
     <div class="header">
       <h1>🎉 Bestellung aufgegeben</h1>
@@ -88,17 +149,23 @@ const copyPickupId = () => {
     <div class="details-section">
       <h2>Bestelldetails</h2>
 
+      <!-- Order ID -->
+      <div class="detail-item">
+        <label>Bestellnummer:</label>
+        <span>#{{ orderFromDb?.order?.order_id || getOrderData()?.order_id }}</span>
+      </div>
+
       <!-- Stand Info -->
       <div class="detail-item">
         <label>Stand:</label>
-        <span>{{ cartStore.orderDetails.standName }}</span>
+        <span>{{ getOrderData()?.standName || 'N/A' }}</span>
       </div>
 
       <!-- Pickup ID -->
       <div class="detail-item pickup-id">
         <label>Abhol-ID:</label>
         <div class="pickup-display">
-          <span class="pickup-number">{{ cartStore.orderDetails.pickupId }}</span>
+          <span class="pickup-number">{{ getOrderData()?.pickupId || 'N/A' }}</span>
           <button class="copy-btn" @click="copyPickupId" title="Kopieren">📋</button>
         </div>
       </div>
@@ -106,13 +173,16 @@ const copyPickupId = () => {
       <!-- Gesamtpreis -->
       <div class="detail-item">
         <label>Gesamtpreis:</label>
-        <span class="price">{{ cartStore.orderDetails.totalPrice.toFixed(2) }}€</span>
+        <span class="price">{{ getTotalPrice().toFixed(2) }}€</span>
       </div>
 
       <!-- Zeit -->
       <div class="detail-item">
         <label>Bestellung:</label>
-        <span>{{ cartStore.orderDetails.timestamp.toLocaleTimeString('de-DE') }}</span>
+        <span>{{
+          getOrderData()?.timestamp?.toLocaleTimeString('de-DE') ||
+          new Date(orderFromDb?.order?.created_at).toLocaleString('de-DE')
+        }}</span>
       </div>
     </div>
 
@@ -120,9 +190,11 @@ const copyPickupId = () => {
     <div class="items-section">
       <h2>Bestellte Artikel</h2>
       <div class="items-list">
-        <div v-for="item in cartStore.orderDetails.items" :key="item.item_id" class="item">
-          <span class="item-name">{{ item.name }}</span>
-          <span class="item-price">{{ item.price.toFixed(2) }}€</span>
+        <div v-for="item in getItems()" :key="item.item_id" class="item">
+          <div class="item-details">
+            <span class="item-name">{{ item.name || 'Item' }} x{{ item.quantity || 1 }}</span>
+            <span class="item-price">{{ (item.price || 0).toFixed(2) }}€</span>
+          </div>
         </div>
       </div>
     </div>
@@ -140,7 +212,7 @@ const copyPickupId = () => {
     </div>
   </div>
   <div v-else class="error-container">
-    <p>Keine Bestellung vorhanden</p>
+    <p>Lade Bestellung...</p>
     <button class="back-btn" @click="router.push('/')">Zur Startseite</button>
   </div>
 </template>
@@ -341,18 +413,29 @@ const copyPickupId = () => {
 .item {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   padding: 10px;
   background: rgba(0, 0, 0, 0.3);
   border-radius: 8px;
 }
 
+.item-details {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  gap: 15px;
+}
+
 .item-name {
   color: white;
+  flex: 1;
 }
 
 .item-price {
   color: #ffd700;
   font-weight: bold;
+  white-space: nowrap;
 }
 
 /* QR Section */

@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import type { ItemsByStand } from '@/model/Items'
 
 export interface OrderDetails {
+  order_id: number
   items: ItemsByStand[]
   totalPrice: number
   pickupId: number
@@ -34,8 +35,9 @@ export const useCartStore = defineStore('cart', {
             }
         },
 
-        createOrder(pickupId: number, standName: string) {
+        createOrder(pickupId: number, standName: string, order_id: number) {
             this.orderDetails = {
+                order_id,
                 items: [...this.items],
                 totalPrice: this.totalPrice,
                 pickupId,

@@ -1,8 +1,12 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import profileManImage from '@/assets/Profil_man.png'
 import profileWomanImage from '@/assets/Profil_woman.png'
+import { getOrdersByUserId } from '@/services/Orders'
 import type { User_Data } from '@/model/UserData'
+
+const router = useRouter()
 
 const props = defineProps<{
   currentImage: string
@@ -22,11 +26,45 @@ const topUps = ref([
 ])
 
 // Bestellungen
-const orders = ref([
-  { id: 1, date: '13.03.2026', items: 'Pizza, Cola', price: 12.5, status: 'Abgeholt' },
-  { id: 2, date: '12.03.2026', items: 'Burrito, Wasser', price: 8.99, status: 'Abgeholt' },
-  { id: 3, date: '11.03.2026', items: 'Sandwich', price: 7.5, status: 'Abgeholt' },
-])
+const orders = ref<any[]>([])
+const isLoadingOrders = ref(false)
+
+// Lade Orders beim Mounten
+onMounted(async () => {
+  if (props.currentUser?.user_id) {
+    await loadOrders()
+  }
+})
+
+const loadOrders = async () => {
+  try {
+    isLoadingOrders.value = true
+    const response = await getOrdersByUserId(props.currentUser!.user_id)
+    orders.value = response.orders || []
+    console.log('Orders geladen:', orders.value)
+  } catch (err) {
+    console.error('Fehler beim Laden der Orders:', err)
+    orders.value = []
+  } finally {
+    isLoadingOrders.value = false
+  }
+}
+
+const getStatusText = (status: string): string => {
+  const statusMap: Record<string, string> = {
+    pending: 'Ausstehend',
+    preparing: 'In Zubereitung',
+    ready: 'Bereit zur Abholung',
+    completed: 'Abgeholt',
+    cancelled: 'Storniert',
+  }
+  return statusMap[status] || status
+}
+
+const handleOrderClick = (orderId: number) => {
+  console.log('Navigiere zu Order:', orderId)
+  router.push({ name: 'order-status', params: { order_id: orderId } })
+}
 
 const toggleProfileImage = () => {
   const newImage = props.currentImage === profileManImage ? profileWomanImage : profileManImage
@@ -105,17 +143,25 @@ const handleBalanceClick = () => {
         <div class="info-card">
           <h2 class="info-title">Bestellungen</h2>
 
-          <div v-if="orders.length > 0" class="orders-list">
-            <div v-for="order in orders" :key="order.id" class="order-item">
+          <div v-if="isLoadingOrders" class="loading">
+            <p>Laden...</p>
+          </div>
+          <div v-else-if="orders.length > 0" class="orders-list">
+            <div
+              v-for="order in orders"
+              :key="order.order_id"
+              class="order-item"
+              @click="handleOrderClick(order.order_id)"
+              style="cursor: pointer"
+            >
               <div class="order-header">
-                <span class="order-date">{{ order.date }}</span>
-                <span class="order-status">{{ order.status }}</span>
+                <span class="order-date">{{
+                  new Date(order.created_at).toLocaleDateString('de-DE')
+                }}</span>
+                <span class="order-status">{{ getStatusText(order.status) }}</span>
               </div>
               <div class="order-details">
-                <p class="order-items">{{ order.items }}</p>
-              </div>
-              <div class="order-footer">
-                <span class="order-price">{{ order.price.toFixed(2) }} €</span>
+                <p class="order-price">{{ order.total_price.toFixed(2) }} €</p>
               </div>
             </div>
           </div>

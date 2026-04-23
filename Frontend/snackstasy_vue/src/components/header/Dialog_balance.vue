@@ -123,11 +123,6 @@ const topUpWithCustomAmount = async () => {
         </div>
       </div>
     </div>
-
-    <!-- Info Section -->
-    <div class="info-section">
-      <p class="info-text">💡 Dein Guthaben wird sofort nach der Aufladung verfügbar sein.</p>
-    </div>
   </div>
 </template>
 

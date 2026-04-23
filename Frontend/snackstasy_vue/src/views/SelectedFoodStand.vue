@@ -187,7 +187,9 @@ const goToCheckout = () => {
               <span class="price">{{ item.price.toFixed(2) }}€</span>
             </div>
             <p class="description">Bestand: {{ item.stock }}</p>
-            <button class="add-btn" @click="addToCart(item)">In den Warenkorb</button>
+            <button class="add-btn" :disabled="item.stock === 0" @click="addToCart(item)">
+              {{ item.stock === 0 ? 'Ausverkauft' : 'In den Warenkorb' }}
+            </button>
           </div>
         </div>
 
@@ -246,7 +248,7 @@ const goToCheckout = () => {
 }
 
 .checkout-btn {
-  background: linear-gradient(135deg, #ffd800, #7e416f, #ffd800);
+  background: linear-gradient(135deg, #ffd800, #ffd800);
   color: black;
   border: none;
 
@@ -440,11 +442,18 @@ const goToCheckout = () => {
   color: rgb(22, 22, 22);
   transition: all 0.25s ease;
   border-radius: 6px;
+  cursor: pointer;
   /*  border: 2px solid #ffffff; */
 }
 
-.add-btn:hover {
+.add-btn:hover:not(:disabled) {
   background: #8a7502;
+}
+
+.add-btn:disabled {
+  background: #cccccc;
+  color: #666666;
+  cursor: not-allowed;
 }
 
 /* States */
