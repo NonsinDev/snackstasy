@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS employees (
 CREATE TABLE IF NOT EXISTS stands (
   stand_id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(255) NOT NULL,
+  description TEXT NULL,
   pickup_id INT NOT NULL,
   tablet_id INT NOT NULL
 );
@@ -35,12 +36,35 @@ CREATE TABLE IF NOT EXISTS items (
   FOREIGN KEY (stand_id) REFERENCES stands(stand_id)
 );
 
--- Default admin user (password: admin123)
+CREATE TABLE IF NOT EXISTS orders (
+  order_id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  stand_id INT NOT NULL,
+  total_price DECIMAL(10, 2) NOT NULL,
+  status ENUM('pending', 'preparing', 'ready', 'completed', 'cancelled') DEFAULT 'pending',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(user_id),
+  FOREIGN KEY (stand_id) REFERENCES stands(stand_id)
+);
+
+CREATE TABLE IF NOT EXISTS order_items (
+  order_item_id INT AUTO_INCREMENT PRIMARY KEY,
+  order_id INT NOT NULL,
+  item_id INT NOT NULL,
+  is_collected BOOLEAN DEFAULT FALSE,
+  quantity INT NOT NULL,
+  price DECIMAL(10, 2) NOT NULL,
+  FOREIGN KEY (order_id) REFERENCES orders(order_id),
+  FOREIGN KEY (item_id) REFERENCES items(item_id)
+);
+
  INSERT INTO employees (username, password_hash, first_name, last_name, role)
- VALUES ('admin', '$2a$11$rBNr6wCBWVH8vPQzMNpJuO3Xf4NzIK4vYHGqZxVmZPwXvxZjZjZjZ', 'Admin', 'User', 'admin')
+ VALUES 
+    ('admin', '$2a$11$PLACEHOLDER_WILL_BE_REPLACED_AT_STARTUP_BY_BACKEND', 'Admin', 'User', 'admin'),
+    ('staff01', '$2a$11$PLACEHOLDER_WILL_BE_REPLACED_AT_STARTUP_BY_BACKEND', 'Staff', '01', 'staff')
  ON DUPLICATE KEY UPDATE first_name = first_name;
 
--- Users (nur einfügen, wenn ticket_id noch nicht existiert)
+-- Users
 INSERT INTO users (user_id, first_name, last_name, birthday, balance, ticket_id)
 VALUES
   (1,'Max', 'Rubel', '1990-01-01', 100.00, 'MR123456'),
@@ -48,15 +72,14 @@ VALUES
   (3,'Daniel', 'Jung', '1985-10-20', 75.00, 'JD789012')
 ON DUPLICATE KEY UPDATE ticket_id = ticket_id;
 
--- Default staende
-INSERT INTO stands (stand_id, name, pickup_id, tablet_id)
+INSERT INTO stands (stand_id, name, description, pickup_id, tablet_id)
 VALUES
-  (1,'Burger House', 1, 1),
-  (2,'Pizza World', 2, 2),
-  (3,'Asia Wok', 3, 3),
-  (4,'Corndog Home', 4, 4),
-  (5,'Sushi Palace', 5, 5),
-  (6,'Tacco Island', 6, 6)
+  (1,'Burger House', 'Delicious burgers and fries', 1, 1),
+  (2,'Pizza World', 'Authentic Italian pizza', 2, 2),
+  (3,'Asia Wok', 'Fresh Asian cuisine', 3, 3),
+  (4,'Corndog Home', 'Tasty corndogs and snacks', 4, 4),
+  (5,'Sushi Palace', 'Fresh sushi and sashimi', 5, 5),
+  (6,'Tacco Island', 'Delicious tacos and burritos', 6, 6)
 ON DUPLICATE KEY UPDATE stand_id = stand_id;
 
 -- Default items
