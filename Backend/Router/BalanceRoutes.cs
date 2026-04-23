@@ -16,16 +16,31 @@ namespace Backend.Router
                 {
                     using MySqlConnection conn = new MySqlConnection(conn_str);
 
-                    int rows_affected = await conn.ExecuteAsync($"UPDATE users SET balance = balance - {req.amount} WHERE user_id = {req.user_id} AND balance >= {req.amount};");
+                    var sql = @"
+                        UPDATE users
+                        SET balance = balance - @Amount
+                        WHERE user_id = @UserId AND balance >= @Amount;
+                    ";
+
+                    int rows_affected = await conn.ExecuteAsync(sql, new
+                    {
+                        Amount = req.amount,
+                        UserId = req.user_id
+                    });
 
                     if (rows_affected == 0)
                     {
                         const string balance_check_query =
-                            "SELECT balance FROM users WHERE user_id = @user_id;";
-                        var exists = await conn.ExecuteScalarAsync<long>(balance_check_query, new { req.user_id });
-                        if (exists == 0)
+                            "SELECT balance FROM users WHERE user_id = @UserId;";
+
+                        var balance = await conn.ExecuteScalarAsync<decimal?>(
+                            balance_check_query,
+                            new { UserId = req.user_id }
+                        );
+
+                        if (balance == null)
                             return Results.NotFound(new { error = "User not found." });
-                        
+
                         return Results.BadRequest(new { error = "Insufficient balance." });
                     }
 
