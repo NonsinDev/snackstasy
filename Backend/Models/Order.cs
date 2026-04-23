@@ -22,6 +22,7 @@ namespace Backend.Models
 
     public class CreateOrderRequest
     {
+        public int user_id { get; set; }
         public required int stand_id { get; set; }
         public required List<OrderItemRequest> items { get; set; }
     }
