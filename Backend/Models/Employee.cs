@@ -12,20 +12,19 @@ namespace Backend.Models
         public required bool is_active { get; set; }
     }
 
-    public class AdminLoginRequest
+    public class EmployeeLoginRequest
     {
         public required string username { get; set; }
         public required string password { get; set; }
     }
 
-    public class AdminChangePasswordRequest
+    public class CreateEmployeeRequest
     {
-        public required string current_password { get; set; }
-        public required string new_password { get; set; }
-    }
-
-    public class UpdateOrderStatusRequest
-    {
-        public required string status { get; set; }
+        public required string username { get; set; }
+        public required string password { get; set; }
+        public required string first_name { get; set; }
+        public required string last_name { get; set; }
+        public string? role { get; set; }
+        public int? stand_id { get; set; }
     }
 }

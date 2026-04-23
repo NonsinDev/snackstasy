@@ -58,10 +58,12 @@ CREATE TABLE IF NOT EXISTS order_items (
   FOREIGN KEY (item_id) REFERENCES items(item_id)
 );
 
- INSERT INTO employees (username, password_hash, first_name, last_name, role)
+-- Admin Password: admin1234
+-- Staff Password: staff1234
+ INSERT INTO employees (username, password_hash, first_name, last_name, role, stand_id)
  VALUES 
-    ('admin', '$2a$11$PLACEHOLDER_WILL_BE_REPLACED_AT_STARTUP_BY_BACKEND', 'Admin', 'User', 'admin'),
-    ('staff01', '$2a$11$PLACEHOLDER_WILL_BE_REPLACED_AT_STARTUP_BY_BACKEND', 'Staff', '01', 'staff')
+    ('admin', '$2a$11$y6j8z.rUt29cp/LJ/yko/eG832ErL17.t/PYgAngitthGndkto2Ra', 'Admin', 'User', 'admin', 1),
+    ('staff01', '$2a$11$s.s.w9E.XL50yuz108raZ.94XqZf4AUKMmtqvvoSq0PxjAL2oqtru', 'Staff', '01', 'staff', 2)
  ON DUPLICATE KEY UPDATE first_name = first_name;
 
 -- Users

@@ -85,6 +85,7 @@ api_v1.MapBalanceRoutes(conn_str);
 api_v1.MapStandRoutes(conn_str);
 api_v1.MapItemRoutes(conn_str);
 api_v1.MapOrderRoutes(conn_str);
+api_v1.MapEmployeeRoutes(conn_str);
 
 app.Run(URL);
 
