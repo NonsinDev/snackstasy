@@ -2,7 +2,9 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ItemsByStandId } from '@/services/Stands'
-import type { ItemsByStand } from '@/model/Items'
+import { useCartStore } from '@/stores/PiniaStore'
+import { useFoodStore } from '@/stores/foodStore'
+import type { ItemsByStand, AllStands } from '@/model/Items'
 import img1 from '@/assets/Burger.png'
 import img2 from '@/assets/pizza.jpg'
 import img3 from '@/assets/wok.jpg'
@@ -12,9 +14,11 @@ import img6 from '@/assets/tgaco.jpg'
 import img7 from '@/assets/KeinBild.jpg'
 import FoodMenu from './FoodMenu.vue'
 
-// Router
+// Router & Store
 const route = useRoute()
 const router = useRouter()
+const cartStore = useCartStore()
+const foodStore = useFoodStore()
 
 // Daten
 const standId = Number(route.params.standId)
@@ -29,6 +33,12 @@ const error = ref<string | null>(null)
 const itemsPerLoad = 20
 const currentPage = ref(0)
 const hasMore = ref(true)
+
+const addToCart = (item: ItemsByStand) => {
+  console.log('jetzt wird gepusht')
+  cartStore.addItem(item)
+  console.log('Item: ', item)
+}
 
 // 🖼️ Stand Infos (kannst du später aus API holen)
 const standName = ref('Food Stand 🍔')
@@ -73,8 +83,28 @@ onMounted(async () => {
       return
     }
 
-    const items = await ItemsByStandId(parseInt(standId))
-    foodItems.value = items
+    const parsedStandId = parseInt(standId)
+
+    // Prüfe ob Stand bereits in foodStore ist, sonst lade items
+    if (foodStore.currentStand?.stand_id === parsedStandId) {
+      foodItems.value = foodStore.currentItems
+      console.log('Stand aus Store geladen:', foodStore.currentStand)
+    } else {
+      console.log('Stand nicht im Store, lade Items...')
+      const items = await ItemsByStandId(parsedStandId)
+      foodItems.value = items
+
+      // Erstelle einen Stand-Objekt mit den verfügbaren Daten und speichere ihn
+      const stand: AllStands = {
+        stand_id: parsedStandId,
+        name: standName.value,
+        pickup_id: parsedStandId, // Fallback: nutze stand_id als pickup_id
+        tablet_id: 0,
+      }
+
+      console.log('Speichere Stand im foodStore:', stand)
+      foodStore.setStandAndItems(stand, items)
+    }
 
     loadMoreItems()
   } catch (err) {
@@ -102,6 +132,10 @@ const getImageByStandId = (id: number) => {
     default:
       return img7 // fallback
   }
+}
+
+const goToCheckout = () => {
+  router.push(`/checkout`) // später implementieren
 }
 </script>
 
@@ -134,6 +168,16 @@ const getImageByStandId = (id: number) => {
         </div>
       </div>
 
+      <div v-if="cartStore.itemCount > 0" class="cart-bar">
+        <div class="cart-info">
+          <span class="cart-icon">🛒</span>
+          <span>{{ cartStore.itemCount }} Artikel</span>
+          <span class="price">{{ cartStore.totalPrice.toFixed(2) }}€</span>
+        </div>
+
+        <button class="checkout-btn" @click="goToCheckout">Kaufen</button>
+      </div>
+
       <!-- 🍽️ Items -->
       <div ref="scrollContainer" class="food-items-section">
         <div class="items-grid">
@@ -143,7 +187,9 @@ const getImageByStandId = (id: number) => {
               <span class="price">{{ item.price.toFixed(2) }}€</span>
             </div>
             <p class="description">Bestand: {{ item.stock }}</p>
-            <button class="add-btn">In den Warenkorb</button>
+            <button class="add-btn" :disabled="item.stock === 0" @click="addToCart(item)">
+              {{ item.stock === 0 ? 'Ausverkauft' : 'In den Warenkorb' }}
+            </button>
           </div>
         </div>
 
@@ -161,6 +207,64 @@ const getImageByStandId = (id: number) => {
 </template>
 
 <style scoped>
+.cart-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+
+  height: 15vh;
+  min-height: 70px;
+
+  background: #0f0f0f;
+  border-top: 2px solid #ffd800;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 0 20px;
+  z-index: 1000;
+
+  box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.6);
+}
+
+.cart-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+
+  color: white;
+  font-weight: 600;
+}
+
+.cart-icon {
+  font-size: 22px;
+}
+
+.cart-info .price {
+  color: #ffd800;
+  font-weight: bold;
+}
+
+.checkout-btn {
+  background: linear-gradient(135deg, #ffd800, #ffd800);
+  color: black;
+  border: none;
+
+  padding: 12px 20px;
+  border-radius: 12px;
+
+  font-weight: bold;
+  font-size: 14px;
+
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.checkout-btn:hover {
+  transform: scale(1.05);
+}
 .load-more-wrapper {
   display: flex;
   justify-content: center;
@@ -338,11 +442,18 @@ const getImageByStandId = (id: number) => {
   color: rgb(22, 22, 22);
   transition: all 0.25s ease;
   border-radius: 6px;
+  cursor: pointer;
   /*  border: 2px solid #ffffff; */
 }
 
-.add-btn:hover {
-  background: #2563eb;
+.add-btn:hover:not(:disabled) {
+  background: #8a7502;
+}
+
+.add-btn:disabled {
+  background: #cccccc;
+  color: #666666;
+  cursor: not-allowed;
 }
 
 /* States */
