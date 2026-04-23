@@ -91,7 +91,7 @@ namespace Backend.Router
 
                     await transaction.CommitAsync();
 
-                    return Results.Created($"/orders/{orderId}", new
+                    return Results.Ok(new
                     {
                         order_id = orderId,
                         total_price = totalPrice

@@ -31,7 +31,9 @@ namespace Backend.Router
                 try
                 {
                     using var conn = new MySqlConnection(conn_str);
-                    var stand = await conn.QueryFirstAsync<Stand>($"SELECT stand_id, name, pickup_id, tablet_id FROM stands WHERE stand_id = {stand_id};");
+                    var stand = await conn.QueryFirstOrDefaultAsync<Stand>(
+                        "SELECT stand_id, name, description, pickup_id, tablet_id FROM stands WHERE stand_id = @id;",
+                        new { id = stand_id });
 
                     if (stand == null)
                         return Results.NotFound(new { error = "Stand not found." });
@@ -94,7 +96,26 @@ group.MapPost("/stands/create", async (CreateStandRequest req) =>
                     var parameters = new DynamicParameters();
                     parameters.Add("id", stand_id);
 
-
+                    if (!string.IsNullOrEmpty(req.name))
+                    {
+                        updates.Add("name = @name");
+                        parameters.Add("name", req.name);
+                    }
+                    if (!string.IsNullOrEmpty(req.description))
+                    {
+                        updates.Add("description = @description");
+                        parameters.Add("description", req.description);
+                    }
+                    if (req.pickup_id.HasValue)
+                    {
+                        updates.Add("pickup_id = @pickup_id");
+                        parameters.Add("pickup_id", req.pickup_id);
+                    }
+                    if (req.tablet_id.HasValue)
+                    {
+                        updates.Add("tablet_id = @tablet_id");
+                        parameters.Add("tablet_id", req.tablet_id);
+                    }
 
                     if (updates.Count == 0)
                         return Results.BadRequest(new { error = "No fields to update." });
