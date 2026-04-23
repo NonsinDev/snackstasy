@@ -3,6 +3,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useCartStore } from '@/stores/PiniaStore'
 import { OrderById } from '@/services/Orders'
+import { ItemsByStandId, StandById } from '@/services/Stands'
 // @ts-ignore
 import QRCode from 'qrcode'
 
@@ -14,14 +15,14 @@ const qrCodeDataUrl = ref<string>('')
 const autoStatusUpdate = ref(false)
 const orderFromDb = ref<any>(null)
 const isLoading = ref(true)
+const itemsWithNames = ref<any[]>([])
+const standData = ref<any>(null)
 
 const getOrderId = (): number | null => {
-  // Versuche order_id aus Route-Parametern zu bekommen
   const routeOrderId = route.params.order_id
   if (routeOrderId) {
     return parseInt(routeOrderId as string)
   }
-  // Fallback auf cartStore order_id
   return cartStore.orderDetails?.order_id || null
 }
 
@@ -32,28 +33,54 @@ const getOrderData = () => {
   return cartStore.orderDetails
 }
 
+const loadItemNames = async (stand_id: number) => {
+  try {
+    const items = await ItemsByStandId(stand_id)
+    const itemMap = new Map(items.map((item) => [item.item_id, item.name]))
+
+    itemsWithNames.value = orderFromDb.value.items.map((orderItem: any) => ({
+      ...orderItem,
+      name: itemMap.get(orderItem.item_id) || `Item ${orderItem.item_id}`,
+    }))
+    console.log('Items mit Namen:', itemsWithNames.value)
+  } catch (err) {
+    console.error('Fehler beim Laden der Item-Namen:', err)
+  }
+}
+
+const loadStandData = async (stand_id: number) => {
+  try {
+    standData.value = await StandById(stand_id)
+    console.log('Stand-Daten geladen:', standData.value)
+  } catch (err) {
+    console.error('Fehler beim Laden der Stand-Daten:', err)
+  }
+}
+
 onMounted(async () => {
   const orderId = getOrderId()
 
   if (orderId) {
-    // Lade Order von der DB
     try {
       console.log('Lade Order von DB mit ID:', orderId)
       const dbResponse = await OrderById(orderId)
       orderFromDb.value = dbResponse
+
+      if (dbResponse.order?.stand_id) {
+        await loadItemNames(dbResponse.order.stand_id)
+        await loadStandData(dbResponse.order.stand_id)
+      }
       console.log('Order von DB geladen:', orderFromDb.value)
     } catch (err) {
       console.error('Fehler beim Laden der Order:', err)
     }
   } else if (!cartStore.orderDetails) {
-    // Keine Order gefunden
     router.push('/')
     return
   }
 
   isLoading.value = false
 
-  // QR-Code mit item_ids generieren
   const orderData = getOrderData()
   if (orderData) {
     try {
@@ -73,7 +100,6 @@ onMounted(async () => {
     }
   }
 
-  // Automatisch nach 3 Sekunden zu "ready" wechseln (Demo)
   if (autoStatusUpdate.value && cartStore.orderDetails) {
     setTimeout(() => {
       cartStore.updateOrderStatus('ready')
@@ -103,6 +129,9 @@ const statusText = computed(() => {
 })
 
 const getItems = () => {
+  if (itemsWithNames.value.length > 0) {
+    return itemsWithNames.value
+  }
   if (orderFromDb.value?.items) {
     return orderFromDb.value.items
   }
@@ -158,14 +187,14 @@ const copyPickupId = () => {
       <!-- Stand Info -->
       <div class="detail-item">
         <label>Stand:</label>
-        <span>{{ getOrderData()?.standName || 'N/A' }}</span>
+        <span>{{ standData?.name || getOrderData()?.standName || 'N/A' }}</span>
       </div>
 
       <!-- Pickup ID -->
       <div class="detail-item pickup-id">
         <label>Abhol-ID:</label>
         <div class="pickup-display">
-          <span class="pickup-number">{{ getOrderData()?.pickupId || 'N/A' }}</span>
+          <span class="pickup-number">{{ standData?.pickup_id || 'N/A' }}</span>
           <button class="copy-btn" @click="copyPickupId" title="Kopieren">📋</button>
         </div>
       </div>

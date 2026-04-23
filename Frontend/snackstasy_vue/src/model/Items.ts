@@ -11,4 +11,12 @@ export interface ItemsByStand {
     "name": String,
     "price": number,
     "stock": number
-  }
+}
+  
+export interface Stand {
+  "stand_id": number,
+  "name": String,
+  "description": String,
+  "pickup_id": number,
+  "tablet_id": number
+}

@@ -38,4 +38,24 @@ export interface GetOderById {
     "price": number
   }>
 }
-  
+
+export interface EmployeeLogin {
+  "username": String,
+  "password": String
+}
+
+export interface EmployeeResponse {
+  "employee_id": number,
+  "username": String
+}
+
+export interface Employee {
+  "username": String,
+  "password": String,
+  "first_name": String,
+  "last_name": String,
+  "role": EmployeeRole,
+  "stand_id": number
+}
+
+export type EmployeeRole = 'admin' | 'staff' | 'manager' | 'cashier'

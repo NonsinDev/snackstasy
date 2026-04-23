@@ -42,3 +42,12 @@ export async function UpdateOrderItems(order_item_id: number): Promise<boolean> 
     throw new Error("Error fetching logout");
   }
 }
+
+export async function OrderPerStandId(stand_id: number): Promise<GetOderById> {
+  const request = await axios.get(`${BaseUrl}/orders/stand/${stand_id}`, { withCredentials: true });
+  if (request.data) {
+    return request.data;
+  } else {
+    throw new Error("Error fetching order");
+  }
+}
