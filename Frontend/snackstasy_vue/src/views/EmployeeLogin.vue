@@ -26,66 +26,29 @@ async function handleLogin() {
   error.value = ''
 
   try {
-    console.log('Versuche Login mit:', { username: username.value })
     const result = await EmployeeLoginService({
       username: username.value,
       password: password.value,
     })
 
-    console.log('Login Response:', result)
-
     if (result.logged_in) {
-      console.log('Login erfolgreich!')
       loginSuccess.value = true
-
-      console.log('Speichere Auth-Daten mit:', {
-        employee_id: result.employee_id,
-        username: username.value,
-        stand_id: result.stand_id,
-      })
-
-      await initEmployeeAuth(result.employee_id, username.value, result.stand_id)
-
-      // Überprüfe, dass Daten wirklich gespeichert sind
-      const stored = localStorage.getItem('employeeAuth')
-      console.log('Gespeicherte Daten in localStorage:', stored)
-
-      if (!stored) {
-        error.value = 'Auth-Daten konnten nicht gespeichert werden'
-        loginSuccess.value = false
-        isLoggingIn.value = false
-        return
-      }
-
-      console.log('Auth-Daten erfolgreich gespeichert, navigiere zu Dashboard...')
-
-      // Navigiere mit replace um History zu überschreiben
-      try {
-        await router.push({ path: '/employee-dashboard', replace: false })
-        console.log('Navigation erfolgreich!')
-      } catch (navError) {
-        console.error('Navigation Error:', navError)
-        error.value = 'Navigation zur Dashboard fehlgeschlagen'
-        loginSuccess.value = false
-      }
+      
+      // Speichere Employee Daten
+      initEmployeeAuth(result.employee.employee_id, username.value, result.employee.stand_id)
+      
+      // Navigiere zur Dashboard
+      await router.push({ path: '/employee-dashboard' })
     } else {
       error.value = 'Falscher Benutzername oder Passwort'
     }
   } catch (err: any) {
-    console.error('Login Error:', err)
-    console.error('Error Response:', err.response?.data)
-    console.error('Error Status:', err.response?.status)
-    console.error('Error Message:', err.message)
-
     if (err.response?.status === 401) {
       error.value = 'Falscher Benutzername oder Passwort'
-    } else if (
-      err.message?.includes('ERR_NETWORK') ||
-      err.message?.includes('Connection refused')
-    ) {
-      error.value = 'Verbindung zum Server fehlgeschlagen. Bitte überprüfen Sie den Server.'
+    } else if (err.message?.includes('ERR_NETWORK') || err.message?.includes('Connection refused')) {
+      error.value = 'Verbindung zum Server fehlgeschlagen'
     } else {
-      error.value = `Login fehlgeschlagen: ${err.message || 'Unbekannter Fehler'}`
+      error.value = 'Login fehlgeschlagen'
     }
   } finally {
     isLoggingIn.value = false

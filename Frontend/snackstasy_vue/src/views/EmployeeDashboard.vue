@@ -3,11 +3,8 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useEmployeeAuth } from '@/services/Authentification'
 import { OrderPerStandId, UpdateOrderItems } from '@/services/Orders'
-import type { GetOderById } from '@/model/UserData'
-import Button from 'primevue/button'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
-import Tooltip from 'primevue/tooltip'
 import Dialog from 'primevue/dialog'
 
 const router = useRouter()
@@ -39,8 +36,6 @@ async function fetchOrders() {
         ...item.order,
         items: item.items,
       }))
-    } else if (response?.orders) {
-      orders.value = response.orders
     } else {
       orders.value = []
     }
@@ -232,7 +227,7 @@ async function logout() {
                   @click="markItemAsCollected(item.order_item_id)"
                 >
                   <i class="pi pi-check"></i>
-                  Abholen
+                  Abgeholt
                 </button>
               </div>
             </div>
@@ -270,7 +265,7 @@ async function logout() {
 .header-content h1 {
   margin: 0 0 0.5rem;
   font-size: 1.5rem;
-  color: #333;
+  color: #000;
 }
 
 .stand-name {
@@ -283,7 +278,7 @@ async function logout() {
 .user-info {
   margin: 0;
   font-size: 0.9rem;
-  color: #666;
+  color: #000;
 }
 
 .logout-btn {
@@ -383,12 +378,13 @@ async function logout() {
   border: none;
   padding: 1rem;
   font-weight: 600;
-  color: #333;
+  color: #000;
 }
 
 :deep(.p-datatable .p-datatable-tbody > tr > td) {
   padding: 1rem;
   border-bottom: 1px solid #e5e5e5;
+  color: #000;
 }
 
 .badge {
@@ -449,7 +445,7 @@ async function logout() {
 .order-info-section h3,
 .items-section h3 {
   margin: 0 0 1rem;
-  color: #333;
+  color: #000;
   font-size: 1rem;
 }
 
@@ -472,7 +468,7 @@ async function logout() {
 }
 
 .info-item span {
-  color: #333;
+  color: #000;
   font-weight: 500;
 }
 
@@ -498,13 +494,13 @@ async function logout() {
 
 .item-name {
   font-weight: 600;
-  color: #333;
+  color: #000;
   margin-bottom: 0.25rem;
 }
 
 .item-price {
   font-size: 0.85rem;
-  color: #666;
+  color: #000;
 }
 
 .item-status {
@@ -559,7 +555,7 @@ async function logout() {
   border-radius: 8px;
   text-align: right;
   font-size: 1.1rem;
-  color: #333;
+  color: #000;
 }
 
 @media (max-width: 768px) {

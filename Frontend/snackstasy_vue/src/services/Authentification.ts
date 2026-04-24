@@ -39,17 +39,14 @@ export function useAuth() {
 }
 
 export function useEmployeeAuth() {
-  // IMMER aus localStorage laden, nicht nur beim ersten Mal
+  // IMMER aus localStorage laden
   if (typeof localStorage !== 'undefined') {
     const stored = localStorage.getItem('employeeAuth');
-    console.log('Loading employeeAuth from localStorage:', stored)
     
     if (stored) {
       try {
         employeeData.value = JSON.parse(stored);
-        console.log('Loaded employeeData:', employeeData.value)
       } catch (e) {
-        console.error('Failed to parse employeeAuth:', e)
         localStorage.removeItem('employeeAuth');
         employeeData.value = null;
       }
@@ -60,11 +57,7 @@ export function useEmployeeAuth() {
 
   return {
     employeeData,
-    isEmployeeAuthenticated: () => {
-      const isAuth = employeeData.value?.employee_id !== undefined;
-      console.log('isEmployeeAuthenticated:', isAuth, 'employeeData:', employeeData.value)
-      return isAuth;
-    },
+    isEmployeeAuthenticated: () => employeeData.value?.employee_id !== undefined,
     clearEmployeeAuth: () => {
       employeeData.value = null;
       if (typeof localStorage !== 'undefined') {
