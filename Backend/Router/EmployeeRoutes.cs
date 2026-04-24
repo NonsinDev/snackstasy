@@ -19,13 +19,27 @@ namespace Backend.Router
                     using var conn = new MySqlConnection(conn_str);
 
                     var employee = await conn.QueryFirstOrDefaultAsync<Employee>(
-                        "SELECT employee_id, username, first_name, last_name, password_hash, role, stand_id, is_active FROM employees WHERE username = @username",
+                        @"SELECT employee_id, username, first_name, last_name, password_hash, role, stand_id, is_active
+                          FROM employees
+                          WHERE username = @username",
                         new { req.username });
 
                     if (employee == null || !employee.is_active || !BCrypt.Net.BCrypt.Verify(req.password, employee.password_hash))
                         return Results.Problem(detail: "Invalid credentials.", statusCode: 401);
 
-                    return Results.Ok(new { logged_in = true });
+                    // ✅ Hier die richtige Response
+                    return Results.Ok(new
+                    {
+                        logged_in = true,
+                        employee = new
+                        {
+                            employee.employee_id,
+                            employee.first_name,
+                            employee.last_name,
+                            employee.role,
+                            employee.stand_id
+                        }
+                    });
                 }
                 catch (Exception ex)
                 {
