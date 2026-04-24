@@ -45,8 +45,11 @@ export interface EmployeeLogin {
 }
 
 export interface EmployeeResponse {
+  "logged_in": boolean,
   "employee_id": number,
-  "username": String
+  "username": String,
+  "stand_id": number,
+  "role": String
 }
 
 export interface Employee {

@@ -240,6 +240,14 @@ onMounted(() => {
           </div>
         </div>
       </button>
+
+      <!-- Employee Login Link -->
+      <div class="employee-login-link">
+        <p>Mitarbeiter?</p>
+        <button class="link-btn" @click="router.push('/employee-login')">
+          Zum Mitarbeiter-Zugang
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -551,6 +559,39 @@ onMounted(() => {
   font-size: 0.75rem;
   color: #999;
   margin-top: 1rem;
+}
+
+.employee-login-link {
+  text-align: center;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e5e5;
+}
+
+.employee-login-link p {
+  margin: 0 0 0.5rem;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.link-btn {
+  background: transparent;
+  border: 1px solid #3366ff;
+  color: #3366ff;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.link-btn:hover {
+  background: #f0f4ff;
+}
+
+.link-btn:active {
+  background: #e8ecff;
 }
 
 @media (max-width: 480px) {
