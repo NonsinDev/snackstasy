@@ -4,6 +4,8 @@ import { ref } from "vue";
 
 import { checkSession } from '@/services/Login'
 
+export const BaseUrl = 'http://192.168.178.37:5002/v1'
+
 const user = ref<Login_response | null>(null);
 const isLoading = ref(true);
 const employeeData = ref<any>(null);

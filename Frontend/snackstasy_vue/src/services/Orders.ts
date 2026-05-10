@@ -1,7 +1,6 @@
 import type { GetOderById, Order, Order_response } from "@/model/UserData";
 import axios from "axios";
-
-const BaseUrl = "http://localhost:5002/v1";
+import { BaseUrl } from '../services/Authentification'
 
 export async function createOrder(order: Order): Promise<Order_response> {
   const response = await axios.post(

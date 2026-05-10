@@ -1,7 +1,7 @@
 import type { CurrenUser_response, Login_data, Login_Request, Login_response } from "@/model/AuthentificationInterface";
 import axios from "axios";
+import { BaseUrl } from '../services/Authentification'
 
-const BaseUrl = "http://localhost:5002/v1";
 
 export async function checkSession(): Promise<Login_response> {
   const request = await axios.get(`${BaseUrl}/login/session`, { withCredentials: true });

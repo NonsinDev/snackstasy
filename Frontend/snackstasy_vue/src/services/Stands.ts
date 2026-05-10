@@ -1,7 +1,6 @@
 import type { AllStands, ItemsByStand, Stand } from "@/model/Items";
 import axios from "axios";
-
-const BaseUrl = "http://localhost:5002/v1";
+import { BaseUrl } from '../services/Authentification'
 
 export async function GetAllStands(): Promise<AllStands[]> {
   const request = await axios.get(`${BaseUrl}/stands/all`, { withCredentials: true });

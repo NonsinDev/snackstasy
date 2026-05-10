@@ -1,7 +1,7 @@
 import type { Employee, EmployeeLogin, EmployeeResponse } from "@/model/UserData";
 import axios from "axios";
+import { BaseUrl } from '../services/Authentification'
 
-const BaseUrl = "http://localhost:5002/v1";
 
 export async function EmployeeLogin(login : EmployeeLogin): Promise<any> {
     const request = await axios.post(`${BaseUrl}/employee/login`, login, {

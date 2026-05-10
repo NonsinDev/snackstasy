@@ -6,8 +6,9 @@ import type {
 } from '@/model/AuthentificationInterface'
 import type { User_Data } from '@/model/UserData'
 import axios from 'axios'
+import { BaseUrl } from '../services/Authentification'
 
-const BaseUrl = 'http://localhost:5002/v1'
+
 
 export async function UserData(ticket_id: string): Promise<User_Data> {
   const request = await axios.get(`${BaseUrl}/tickets/${ticket_id}`)
