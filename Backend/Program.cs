@@ -5,7 +5,7 @@ using Backend.Router;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddCors();
 
-string URL = "http://localhost:5002";
+string URL = "http://192.168.178.24:5002";
 
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
