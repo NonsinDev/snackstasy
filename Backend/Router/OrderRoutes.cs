@@ -226,6 +226,35 @@ namespace Backend.Router
                     return Results.Problem("Internal server error: " + ex.Message);
                 }
             });
+
+            // PATCH /orders/status/{order_id} - Update status
+            group.MapPatch("/orders/status/{order_id}", async (int order_id, UpdateOrderStatusRequest req) =>
+            {
+                try
+                {
+                    using var conn = new MySqlConnection(conn_str);
+
+                    var rows = await conn.ExecuteAsync(
+                        @"UPDATE orders
+                          SET status = @status
+                          WHERE order_id = @order_id",
+                        new
+                        {
+                            status = req.status.ToString(),
+                            order_id
+                        });
+
+                    if (rows == 0)
+                        return Results.NotFound(new { error = "Order not found." });
+
+                    return Results.Ok(new { updated = true });
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error PATCH /orders/status/{order_id}: {ex}");
+                    return Results.Problem("Internal server error: " + ex.Message);
+                }
+            });
         }
     }
 }

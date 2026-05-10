@@ -37,4 +37,18 @@ namespace Backend.Models
     {
         public required bool is_collected { get; set; }
     }
+
+    public enum OrderStatus
+    {
+        pending,
+        preparing,
+        ready,
+        completed,
+        cancelled
+    }
+
+    public class UpdateOrderStatusRequest
+    {
+    public required OrderStatus status { get; set; }
+    }
 }
