@@ -38,6 +38,7 @@ namespace Backend.Models
         public required bool is_collected { get; set; }
     }
 
+
     public enum OrderStatus
     {
         pending,
