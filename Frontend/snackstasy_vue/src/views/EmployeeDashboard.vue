@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useEmployeeAuth } from '@/services/Authentification'
-import { OrderPerStandId, UpdateOrderItems } from '@/services/Orders'
+import { OrderPerStandId, UpdateOrderStatus, UpdateOrderItems } from '@/services/Orders'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Dialog from 'primevue/dialog'
@@ -36,6 +36,8 @@ async function fetchOrders() {
         ...item.order,
         items: item.items,
       }))
+      // Sortiere die Orders: Ausstehende oben, Abgeholt unten
+      sortOrdersByStatus()
     } else {
       orders.value = []
     }
@@ -55,33 +57,79 @@ function showDetails(order: any) {
 
 async function markItemAsCollected(orderItemId: number) {
   try {
-    await UpdateOrderItems(orderItemId)
+    await UpdateOrderItems(orderItemId, true)
     // Aktualisiere die Bestellungen nach Änderung
     await fetchOrders()
+
+    // Aktualisiere das selectedOrder mit den neuen Daten
+    if (selectedOrder.value && orders.value.length > 0) {
+      const updatedOrder = orders.value.find((o) => o.order_id === selectedOrder.value.order_id)
+      if (updatedOrder) {
+        selectedOrder.value = updatedOrder
+
+        // Prüfe ob alle Items dieser Bestellung collected sind
+        const allCollected = updatedOrder.items.every((item: any) => item.is_collected)
+        if (allCollected) {
+          // Aktualisiere Order Status auf completed (3)
+          await UpdateOrderStatus(updatedOrder.order_id, 3)
+          // Aktualisiere die Bestellungen erneut um den neuen Status zu zeigen
+          await fetchOrders()
+        }
+      }
+    }
   } catch (err) {
     console.error('Error updating order item:', err)
     error.value = 'Fehler beim Aktualisieren des Items'
   }
 }
 
-function getStatusBadgeClass(status: string) {
+function getStatusBadgeClass(status: string | number) {
   const statusMap: { [key: string]: string } = {
+    '1': 'badge-pending',
+    pending: 'badge-pending',
+    '2': 'badge-preparing',
     preparing: 'badge-preparing',
     ready: 'badge-ready',
+    '3': 'badge-completed',
     completed: 'badge-completed',
-    pending: 'badge-pending',
   }
-  return statusMap[status] || 'badge-pending'
+  return statusMap[String(status)] || 'badge-pending'
 }
 
-function getStatusLabel(status: string) {
+function getStatusLabel(status: string | number) {
   const labels: { [key: string]: string } = {
+    '1': 'Ausstehend',
+    pending: 'Ausstehend',
+    '2': 'In Zubereitung',
     preparing: 'In Zubereitung',
     ready: 'Bereit',
+    '3': 'Abgeholt',
     completed: 'Abgeholt',
-    pending: 'Ausstehend',
   }
-  return labels[status] || status
+  return labels[String(status)] || String(status)
+}
+
+function getDisplayStatus(order: any) {
+  // Wenn alle Items dieser Bestellung collected sind, zeige "completed" (3) an
+  if (order.items && order.items.every((item: any) => item.is_collected)) {
+    return '3'
+  }
+  return String(order.status)
+}
+
+function sortOrdersByStatus() {
+  // Sortiere Orders: Ausstehende/In Zubereitung oben, Abgeholt unten
+  orders.value.sort((a: any, b: any) => {
+    const statusA = String(getDisplayStatus(a))
+    const statusB = String(getDisplayStatus(b))
+
+    // Status 3 (Abgeholt) sollte nach unten, alle anderen nach oben
+    if (statusA === '3' && statusB !== '3') return 1
+    if (statusA !== '3' && statusB === '3') return -1
+
+    // Wenn beide Abgeholt oder beide nicht Abgeholt, sortiere nach Status-Nummer
+    return Number(statusA) - Number(statusB)
+  })
 }
 
 async function logout() {
@@ -115,11 +163,11 @@ async function logout() {
     </div>
 
     <!-- Error State -->
-    <div v-if="error" class="error-message">
+    <!--     <div v-if="error" class="error-message">
       <i class="pi pi-exclamation-circle"></i>
       {{ error }}
       <button class="retry-btn" @click="fetchOrders">Erneut versuchen</button>
-    </div>
+    </div> -->
 
     <!-- Empty State -->
     <div v-if="!isLoading && orders.length === 0" class="empty-state">
@@ -150,8 +198,8 @@ async function logout() {
 
         <Column field="status" header="Status" style="width: 20%">
           <template #body="slotProps">
-            <span :class="['badge', getStatusBadgeClass(slotProps.data.status)]">
-              {{ getStatusLabel(slotProps.data.status) }}
+            <span :class="['badge', getStatusBadgeClass(getDisplayStatus(slotProps.data))]">
+              {{ getStatusLabel(getDisplayStatus(slotProps.data)) }}
             </span>
           </template>
         </Column>
@@ -198,8 +246,8 @@ async function logout() {
             </div>
             <div class="info-item">
               <label>Status:</label>
-              <span :class="['badge', getStatusBadgeClass(selectedOrder.status)]">
-                {{ getStatusLabel(selectedOrder.status) }}
+              <span :class="['badge', getStatusBadgeClass(getDisplayStatus(selectedOrder))]">
+                {{ getStatusLabel(getDisplayStatus(selectedOrder)) }}
               </span>
             </div>
             <div class="info-item">

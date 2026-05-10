@@ -34,12 +34,21 @@ export async function OrderById(order_id: number): Promise<GetOderById> {
   }
 }
 
-export async function UpdateOrderItems(order_item_id: number): Promise<boolean> {
-  const request = await axios.patch(`${BaseUrl}/orders/items/${order_item_id}`, order_item_id, { withCredentials: true });
+export async function UpdateOrderItems(order_item_id: number, is_collected:boolean): Promise<boolean> {
+  const request = await axios.patch(`${BaseUrl}/orders/items/${order_item_id}`, {is_collected: is_collected}, { withCredentials: true });
   if (request.data) {
     return request.data;
   } else {
     throw new Error("Error fetching logout");
+  }
+}
+
+export async function UpdateOrderStatus(order_id: number, status: number): Promise<boolean> {
+  const request = await axios.patch(`${BaseUrl}/orders/items/${order_id}`, {status: status}, { withCredentials: true });
+  if (request.data) {
+    return request.data;
+  } else {
+    throw new Error("Error fetching Order status Update");
   }
 }
 

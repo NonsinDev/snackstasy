@@ -32,3 +32,4 @@ export async function EmployeeCreate(employee : Employee): Promise<EmployeeLogin
     throw new Error("Error fetching login");
   }
 }
+
